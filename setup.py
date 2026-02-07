@@ -26,6 +26,7 @@ setup(
         "pyyaml>=6.0",
         "rich>=12.0.0",
         "inquirer>=3.0.0",
+        "requests>=2.28.0",
     ],
     entry_points={
         "console_scripts": [

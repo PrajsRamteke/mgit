@@ -91,3 +91,14 @@ mgit switch --name personal --scope local
 # 10. Check current config
 # ──────────────────────────────────────
 mgit current
+
+
+
+--------
+
+mgit add Username        # Just username! Auto-fetches name/email
+mgit add Username -d     # Add as default
+mgit info Username       # Preview user without adding
+mgit ls                      # Short for list
+mgit use work                # Short for switch
+mgit key personal            # Short for show-key

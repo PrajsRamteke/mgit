@@ -166,3 +166,136 @@ def is_git_repo(path: Optional[str] = None) -> bool:
         return result.returncode == 0
     except Exception:
         return False
+
+
+# ---------- Provider API helpers ----------
+
+def fetch_github_user(username: str) -> dict:
+    """
+    Fetch user details from GitHub API.
+    
+    Returns dict with: login, name, email, id, avatar_url, bio
+    Raises ValueError if user not found or API error.
+    """
+    import requests
+    
+    url = f"https://api.github.com/users/{username}"
+    try:
+        response = requests.get(url, timeout=10)
+        if response.status_code == 404:
+            raise ValueError(f"GitHub user '{username}' not found")
+        if response.status_code == 403:
+            raise ValueError("GitHub API rate limit exceeded. Try again later.")
+        response.raise_for_status()
+        
+        data = response.json()
+        return {
+            "login": data.get("login"),
+            "name": data.get("name") or data.get("login"),
+            "email": data.get("email"),
+            "id": data.get("id"),
+            "avatar_url": data.get("avatar_url"),
+            "bio": data.get("bio"),
+            "html_url": data.get("html_url"),
+        }
+    except requests.exceptions.RequestException as e:
+        raise ValueError(f"Failed to fetch GitHub user: {e}")
+
+
+def fetch_gitlab_user(username: str) -> dict:
+    """
+    Fetch user details from GitLab API.
+    
+    Returns dict with: username, name, id, avatar_url
+    Raises ValueError if user not found or API error.
+    """
+    import requests
+    
+    url = f"https://gitlab.com/api/v4/users?username={username}"
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        
+        users = response.json()
+        if not users:
+            raise ValueError(f"GitLab user '{username}' not found")
+        
+        data = users[0]
+        return {
+            "login": data.get("username"),
+            "name": data.get("name") or data.get("username"),
+            "id": data.get("id"),
+            "avatar_url": data.get("avatar_url"),
+            "html_url": data.get("web_url"),
+        }
+    except requests.exceptions.RequestException as e:
+        raise ValueError(f"Failed to fetch GitLab user: {e}")
+
+
+def fetch_bitbucket_user(username: str) -> dict:
+    """
+    Fetch user details from Bitbucket API.
+    
+    Returns dict with: username, display_name, uuid
+    Raises ValueError if user not found or API error.
+    """
+    import requests
+    
+    url = f"https://api.bitbucket.org/2.0/users/{username}"
+    try:
+        response = requests.get(url, timeout=10)
+        if response.status_code == 404:
+            raise ValueError(f"Bitbucket user '{username}' not found")
+        response.raise_for_status()
+        
+        data = response.json()
+        return {
+            "login": data.get("username") or data.get("nickname"),
+            "name": data.get("display_name"),
+            "id": data.get("uuid"),
+            "avatar_url": data.get("links", {}).get("avatar", {}).get("href"),
+            "html_url": data.get("links", {}).get("html", {}).get("href"),
+        }
+    except requests.exceptions.RequestException as e:
+        raise ValueError(f"Failed to fetch Bitbucket user: {e}")
+
+
+def fetch_provider_user(username: str, provider: str) -> dict:
+    """
+    Fetch user details from the specified Git provider.
+    
+    Parameters
+    ----------
+    username : str
+        The username to look up.
+    provider : str
+        One of: github, gitlab, bitbucket
+    
+    Returns
+    -------
+    dict with user details (login, name, email, id, etc.)
+    """
+    if provider == "github":
+        return fetch_github_user(username)
+    elif provider == "gitlab":
+        return fetch_gitlab_user(username)
+    elif provider == "bitbucket":
+        return fetch_bitbucket_user(username)
+    else:
+        raise ValueError(f"Unsupported provider: {provider}")
+
+
+def generate_noreply_email(username: str, user_id: int, provider: str) -> str:
+    """
+    Generate a no-reply email for the given provider.
+    
+    This is used when the user's email is not public.
+    """
+    if provider == "github":
+        return f"{user_id}+{username}@users.noreply.github.com"
+    elif provider == "gitlab":
+        return f"{user_id}-{username}@users.noreply.gitlab.com"
+    elif provider == "bitbucket":
+        return f"{username}@bitbucket.org"
+    else:
+        return f"{username}@{provider}.com"
