@@ -1,0 +1,11 @@
+# Multi-Git Manager — default configuration
+version: "1.0"
+
+# Default settings for new accounts
+defaults:
+  key_type: ed25519
+  provider: github
+
+# Accounts are stored in ~/.mgit/config.yaml at runtime.
+# This file is a reference template only.
+accounts: {}

@@ -1,0 +1,93 @@
+# ──────────────────────────────────────
+# 1. Install
+# ──────────────────────────────────────
+pip install -e .
+
+# ──────────────────────────────────────
+# 2. Add personal GitHub account
+# ──────────────────────────────────────
+mgit add \
+  --name personal \
+  --username "johndoe" \
+  --email "john@gmail.com" \
+  --provider github \
+  --workspace ~/personal \
+  --default
+
+# ──────────────────────────────────────
+# 3. Add work GitHub account
+# ──────────────────────────────────────
+mgit add \
+  --name work \
+  --username "john.doe" \
+  --email "john@company.com" \
+  --provider github \
+  --workspace ~/work
+
+# ──────────────────────────────────────
+# 4. Add a GitLab account
+# ──────────────────────────────────────
+mgit add \
+  --name freelance \
+  --username "jdoe-freelance" \
+  --email "john@freelance.com" \
+  --provider gitlab
+
+
+
+; Global Git Config:
+;   user.name: PRAJWAL BHIMRAO RAMTEKE
+;   user.email: 115864844+PrajsRamteke@users.noreply.github.com
+
+; Local Git Config (/Users/prajwal/Desktop/extentions/multi-git-manager):
+;   user.name: (not set)
+;   user.email: (not set)
+
+; Active mgit profile: personal
+
+mgit add \
+  --name main \
+  --username "PRAJWAL BHIMRAO RAMTEKE" \
+  --email "115864844+PrajsRamteke@users.noreply.github.com" \
+  --provider github \
+  --workspace ~/work
+# ──────────────────────────────────────
+# 5. Copy the SSH public key & add to provider
+# ──────────────────────────────────────
+mgit show-key --name personal
+mgit show-key --name work
+mgit show-key --name freelance
+
+# ──────────────────────────────────────
+# 6. Test connections
+# ──────────────────────────────────────
+mgit test --name personal
+mgit test --name work
+
+# ──────────────────────────────────────
+# 7. List all profiles
+# ──────────────────────────────────────
+mgit list
+# ┌───────────┬──────────────────┬─────────────────────┬──────────┬───────────────────────────┬─────────┐
+# │ Name      │ Username         │ Email               │ Provider │ Host Alias                │ Default │
+# ├───────────┼──────────────────┼─────────────────────┼──────────┼───────────────────────────┼─────────┤
+# │ personal  │ johndoe          │ john@gmail.com      │ github   │ github.com-personal       │    ✓    │
+# │ work      │ john.doe         │ john@company.com    │ github   │ github.com-work           │         │
+# │ freelance │ jdoe-freelance   │ john@freelance.com  │ gitlab   │ gitlab.com-freelance      │         │
+# └───────────┴──────────────────┴─────────────────────┴──────────┴───────────────────────────┴─────────┘
+
+# ──────────────────────────────────────
+# 8. Clone with a specific profile
+# ──────────────────────────────────────
+mgit clone --name work git@github.com:company/project.git
+
+# ──────────────────────────────────────
+# 9. Switch identity for an existing repo
+# ──────────────────────────────────────
+cd ~/projects/side-project
+mgit switch --name personal --scope local
+
+# ──────────────────────────────────────
+# 10. Check current config
+# ──────────────────────────────────────
+mgit current
