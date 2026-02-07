@@ -6,19 +6,36 @@ Manage multiple Git accounts on a single machine effortlessly. Generate SSH keys
 
 ## 📦 Installation
 
-**Recommended (using pipx):**
+**Quick install (recommended):**
 ```bash
+curl -fsSL https://raw.githubusercontent.com/PrajsRamteke/mgit/main/install.sh | bash
+```
+This installer:
+- Uses `pipx` when available
+- Falls back to an isolated virtualenv at `~/.local/share/mgit`
+- Installs the `mgit` command in `~/.local/bin` (if needed)
+
+**Install with pipx (manual):**
+```bash
+# macOS (if pipx is missing)
+brew install pipx
+pipx ensurepath
+
+# Install mgit
 pipx install git+https://github.com/PrajsRamteke/mgit.git
 ```
 
-**Alternative (using pip):**
+**Install with python venv (no pipx required):**
 ```bash
-pip install --user git+https://github.com/PrajsRamteke/mgit.git
+python3 -m venv ~/.local/share/mgit/venv
+~/.local/share/mgit/venv/bin/python -m pip install --upgrade pip
+~/.local/share/mgit/venv/bin/python -m pip install git+https://github.com/PrajsRamteke/mgit.git
+ln -sf ~/.local/share/mgit/venv/bin/mgit ~/.local/bin/mgit
 ```
 
-**One-liner:**
+If `mgit` is not found after install, add this to `~/.zshrc` or `~/.bashrc`:
 ```bash
-curl -sSL https://raw.githubusercontent.com/PrajsRamteke/mgit/main/install.sh | bash
+export PATH="$HOME/.local/bin:$PATH"
 ```
 
 ---
@@ -252,6 +269,39 @@ mgit workspace personal ~/personal
 ---
 
 ## 🔧 Troubleshooting
+
+### Installation Fails on macOS with "externally-managed-environment"
+
+Homebrew Python follows [PEP 668](https://peps.python.org/pep-0668/), so global `pip install` is blocked.
+Use either:
+```bash
+curl -fsSL https://raw.githubusercontent.com/PrajsRamteke/mgit/main/install.sh | bash
+```
+or:
+```bash
+brew install pipx && pipx ensurepath
+pipx install git+https://github.com/PrajsRamteke/mgit.git
+```
+
+### `pipx` / `pip` Command Not Found
+
+Use `python3` directly or install pipx:
+```bash
+brew install pipx
+pipx ensurepath
+```
+Then install:
+```bash
+pipx install git+https://github.com/PrajsRamteke/mgit.git
+```
+
+### `mgit: command not found`
+
+Add local bin directory to your PATH:
+```bash
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
+source ~/.zshrc
+```
 
 ### SSH Connection Failed
 
