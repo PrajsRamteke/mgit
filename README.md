@@ -7,8 +7,14 @@ Manage multiple Git accounts on a single machine effortlessly. Generate SSH keys
 ## 📦 Installation
 
 **Quick install (recommended):**
+
 ```bash
 curl -fsSL https://raw.githubusercontent.com/PrajsRamteke/mgit/main/install.sh | bash
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
+source ~/.zshrc
+mgit --version
+mgit --help
+
 ```
 This installer:
 - Uses `pipx` when available
