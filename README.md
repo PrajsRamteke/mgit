@@ -6,22 +6,19 @@ Manage multiple Git accounts on a single machine effortlessly. Generate SSH keys
 
 ## 📦 Installation
 
+**Recommended (using pipx):**
 ```bash
-# Clone the repository
-git clone https://github.com/PrajsRamteke/mgit.git
-cd mgit
-
-# Install the package
-pip install -e .
+pipx install git+https://github.com/PrajsRamteke/mgit.git
 ```
-Or if you want to use the virtual environment that's already set up:
 
+**Alternative (using pip):**
 ```bash
-# Activate the virtual environment first
-source .venv/bin/activate
+pip install --user git+https://github.com/PrajsRamteke/mgit.git
+```
 
-# Then install in development mode
-pip install -e .
+**One-liner:**
+```bash
+curl -sSL https://raw.githubusercontent.com/PrajsRamteke/mgit/main/install.sh | bash
 ```
 
 ---

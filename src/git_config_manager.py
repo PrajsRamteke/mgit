@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 from typing import Optional
 
-from utils import (
+from .utils import (
     run_command,
     print_success,
     print_error,
@@ -15,7 +15,7 @@ from utils import (
     is_git_repo,
     console,
 )
-from account_manager import Account
+from .account_manager import Account
 
 
 class GitConfigManager:
@@ -140,7 +140,7 @@ class GitConfigManager:
         instead of
             git@github.com:user/repo.git
         """
-        from ssh_manager import PROVIDER_HOSTS
+        from .ssh_manager import PROVIDER_HOSTS
 
         actual_host = PROVIDER_HOSTS.get(account.provider, account.custom_host)
         if actual_host is None:
@@ -172,7 +172,7 @@ class GitConfigManager:
         Clone a repository using the SSH host alias of the given account,
         then set the local config inside the cloned repo.
         """
-        from ssh_manager import PROVIDER_HOSTS
+        from .ssh_manager import PROVIDER_HOSTS
 
         actual_host = PROVIDER_HOSTS.get(account.provider, account.custom_host)
         # Rewrite URL to use the host alias

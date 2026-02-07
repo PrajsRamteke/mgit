@@ -4,16 +4,16 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
-    name="multi-git-manager",
+    name="mgit",
     version="1.0.0",
-    author="Your Name",
-    author_email="your.email@example.com",
+    author="PrajsRamteke",
+    author_email="",
     description="Manage multiple Git accounts on a single system",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/multi-git-manager",
-    packages=find_packages(where="src"),
-    package_dir={"": "src"},
+    url="https://github.com/PrajsRamteke/mgit",
+    packages=["mgit"],
+    package_dir={"mgit": "src"},
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
@@ -30,7 +30,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "mgit=cli:main",
+            "mgit=mgit.cli:main",
         ],
     },
 )

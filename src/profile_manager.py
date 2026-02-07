@@ -5,10 +5,10 @@ and account storage to provide simple "add / switch / remove" workflows.
 
 from typing import Optional
 
-from account_manager import AccountManager, Account
-from ssh_manager import SSHManager
-from git_config_manager import GitConfigManager
-from utils import (
+from .account_manager import AccountManager, Account
+from .ssh_manager import SSHManager
+from .git_config_manager import GitConfigManager
+from .utils import (
     print_success,
     print_error,
     print_info,

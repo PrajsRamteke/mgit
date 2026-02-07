@@ -8,7 +8,7 @@ from typing import Optional
 
 import yaml
 
-from utils import (
+from .utils import (
     get_mgit_config_file,
     validate_email,
     validate_account_name,

@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 from typing import Optional
 
-from utils import (
+from .utils import (
     get_ssh_dir,
     get_ssh_config_file,
     run_command,

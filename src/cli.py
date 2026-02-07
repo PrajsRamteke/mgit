@@ -8,8 +8,8 @@ from typing import Optional
 import click
 from rich.console import Console
 
-from profile_manager import ProfileManager
-from utils import (
+from .profile_manager import ProfileManager
+from .utils import (
     print_header,
     print_success,
     print_error,
@@ -261,7 +261,7 @@ def workspace(name: str, directory: str):
 @click.argument("name")
 def show_key(name: str):
     """Display the public SSH key for a profile (to add to your Git provider)."""
-    from ssh_manager import SSHManager
+    from .ssh_manager import SSHManager
 
     ssh = SSHManager()
     pub = ssh.get_public_key(name)
@@ -277,7 +277,7 @@ def show_key(name: str):
 @click.argument("name")
 def key(name: str):
     """Alias for show-key."""
-    from ssh_manager import SSHManager
+    from .ssh_manager import SSHManager
 
     ssh = SSHManager()
     pub = ssh.get_public_key(name)
