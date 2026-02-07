@@ -36,10 +36,10 @@ mgit add \
 
 
 ; Global Git Config:
-;   user.name: PRAJWAL BHIMRAO RAMTEKE
-;   user.email: 115864844+PrajsRamteke@users.noreply.github.com
+;   user.name: John Doe
+;   user.email: 12345678+johndoe@users.noreply.github.com
 
-; Local Git Config (/Users/prajwal/Desktop/extentions/multi-git-manager):
+; Local Git Config (~/projects/multi-git-manager):
 ;   user.name: (not set)
 ;   user.email: (not set)
 
@@ -47,8 +47,8 @@ mgit add \
 
 mgit add \
   --name main \
-  --username "PRAJWAL BHIMRAO RAMTEKE" \
-  --email "115864844+PrajsRamteke@users.noreply.github.com" \
+  --username "John Doe" \
+  --email "12345678+johndoe@users.noreply.github.com" \
   --provider github \
   --workspace ~/work
 # ──────────────────────────────────────

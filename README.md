@@ -42,15 +42,15 @@ mgit add YourBitbucketUsername -p bitbucket
 
 **Example:**
 ```bash
-mgit add PrajsRamteke -d
+mgit add GitHubUserName -d
 ```
 
 **Output:**
 ```
 ℹ Fetching user details from github...
-  Name: PRAJWAL BHIMRAO RAMTEKE
-  Email: 115864844+PrajsRamteke@users.noreply.github.com
-✓ Profile 'PrajsRamteke' created successfully!
+  Name: The GitHubUserName
+  Email: 12345678+GitHubUserName@users.noreply.github.com
+✓ Profile 'GitHubUserName' created successfully!
 ```
 
 ---
@@ -69,12 +69,12 @@ mgit show-key YourProfileName
 
 **Example:**
 ```bash
-mgit key PrajsRamteke
+mgit key GitHubUserName
 ```
 
 **Output:**
 ```
-Public key for 'PrajsRamteke':
+Public key for 'GitHubUserName':
 
 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIG... your@email.com
 ```
@@ -116,13 +116,13 @@ mgit test YourProfileName
 
 **Example:**
 ```bash
-mgit test PrajsRamteke
+mgit test GitHubUserName
 ```
 
 **Expected Output:**
 ```
-✓ SSH connection successful for 'PrajsRamteke'
-  Hi PrajsRamteke! You've successfully authenticated.
+✓ SSH connection successful for 'GitHubUserName'
+  Hi GitHubUserName! You've successfully authenticated.
 ```
 
 ---

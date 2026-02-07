@@ -36,8 +36,8 @@ def main():
     
     \b
     Quick Start:
-      mgit add PrajsRamteke              # Add GitHub account (auto-fetches details)
-      mgit add PrajsRamteke -d           # Add as default account
+      mgit add octocat                   # Add GitHub account (auto-fetches details)
+      mgit add octocat -d                # Add as default account
       mgit add user -p gitlab            # Add GitLab account
       mgit ls                            # List all profiles
       mgit use work                      # Switch to work profile
@@ -80,8 +80,8 @@ def add(
 
     \b
     Examples:
-      mgit add PrajsRamteke              # Add GitHub user (auto-fetches name/email)
-      mgit add PrajsRamteke -d           # Add as default profile
+      mgit add octocat                   # Add GitHub user (auto-fetches name/email)
+      mgit add octocat -d                # Add as default profile
       mgit add user -p gitlab            # Add GitLab user
       mgit add user -n work -w ~/work    # Add with custom profile name & workspace
       mgit add user -e my@email.com      # Override email
@@ -305,7 +305,7 @@ def info(username: str, provider: str):
 
     \b
     Example:
-      mgit info PrajsRamteke
+      mgit info octocat
       mgit info someuser -p gitlab
     """
     try:
