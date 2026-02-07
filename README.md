@@ -6,7 +6,7 @@ Manage multiple Git accounts on a single machine effortlessly. Generate SSH keys
 
 ## 📦 Installation
 
-**Quick install (recommended):**
+**Quick install (recommended: Copy one by one and paste in terminal):**
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/PrajsRamteke/mgit/main/install.sh | bash
@@ -14,16 +14,12 @@ echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
 source ~/.zshrc
 mgit --version
 mgit --help
-
 ```
-This installer:
-- Uses `pipx` when available
-- Falls back to an isolated virtualenv at `~/.local/share/mgit`
-- Installs the `mgit` command in `~/.local/bin` (if needed)
 
-**Install with pipx (manual):**
+**Alternative: Install with pipx**
+
 ```bash
-# macOS (if pipx is missing)
+# Install pipx (if needed)
 brew install pipx
 pipx ensurepath
 
@@ -31,36 +27,26 @@ pipx ensurepath
 pipx install git+https://github.com/PrajsRamteke/mgit.git
 ```
 
-**Install with python venv (no pipx required):**
+**Verify installation:**
 ```bash
-python3 -m venv ~/.local/share/mgit/venv
-~/.local/share/mgit/venv/bin/python -m pip install --upgrade pip
-~/.local/share/mgit/venv/bin/python -m pip install git+https://github.com/PrajsRamteke/mgit.git
-ln -sf ~/.local/share/mgit/venv/bin/mgit ~/.local/bin/mgit
-```
-
-If `mgit` is not found after install, add this to `~/.zshrc` or `~/.bashrc`:
-```bash
-export PATH="$HOME/.local/bin:$PATH"
+mgit --version
+mgit --help
 ```
 
 ---
 
-## 🚀 Quick Start Guide
+## 🚀 Quick Start
 
-### Step 1: Add a New Account Using Username
+### Step 1: Add Your Account
 
-Simply provide your GitHub/GitLab username — mgit automatically fetches your name and email!
+Just provide your GitHub/GitLab username — mgit automatically fetches your name and email!
 
 ```bash
-# Basic usage - just provide username
-mgit add YourGitHubUsername
-
-# Add as default account
+# Add GitHub account (set as default)
 mgit add YourGitHubUsername -d
 
 # Add with custom profile name
-mgit add YourGitHubUsername -n myprofile
+mgit add YourGitHubUsername -n work
 
 # Add GitLab account
 mgit add YourGitLabUsername -p gitlab
@@ -69,117 +55,69 @@ mgit add YourGitLabUsername -p gitlab
 mgit add YourBitbucketUsername -p bitbucket
 ```
 
-**Example:**
-```bash
-mgit add GitHubUserName -d
-```
-
-**Output:**
+**Example output:**
 ```
 ℹ Fetching user details from github...
-  Name: The GitHubUserName
-  Email: 12345678+GitHubUserName@users.noreply.github.com
-✓ Profile 'GitHubUserName' created successfully!
+  Name: Your Name
+  Email: your@email.com
+✓ Profile 'YourGitHubUsername' created successfully!
 ```
-
----
 
 ### Step 2: Get Your SSH Public Key
 
-After adding an account, mgit generates an SSH key pair. Get your public key to add to GitHub/GitLab:
+Copy your public key to add it to GitHub/GitLab:
 
 ```bash
-# Show SSH public key for a profile
 mgit key YourProfileName
-
-# Or use the full command
-mgit show-key YourProfileName
-```
-
-**Example:**
-```bash
-mgit key GitHubUserName
 ```
 
 **Output:**
 ```
-Public key for 'GitHubUserName':
+Public key for 'YourProfileName':
 
 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIG... your@email.com
 ```
 
-**📋 Copy this entire key** — you'll need it for the next step!
+📋 **Copy the entire key** — you'll need it next!
 
----
+### Step 3: Add SSH Key to GitHub/GitLab
 
-### Step 3: Add SSH Key to GitHub
+**GitHub:**
+1. Go to [GitHub SSH Settings](https://github.com/settings/keys)
+2. Click "New SSH key"
+3. Paste your key and save
 
-1. **Open GitHub SSH Settings**
-   - Go to: [https://github.com/settings/keys](https://github.com/settings/keys)
-   - Or: GitHub → Settings → SSH and GPG keys
+**GitLab:** [GitLab SSH Keys](https://gitlab.com/-/user_settings/ssh_keys)  
+**Bitbucket:** Bitbucket → Personal Settings → SSH keys
 
-2. **Click "New SSH key"**
-
-3. **Fill in the details:**
-   - **Title:** Give it a descriptive name (e.g., "MacBook Pro - Work")
-   - **Key type:** Authentication Key
-   - **Key:** Paste your public key (from Step 2)
-
-4. **Click "Add SSH key"**
-
-5. **Confirm** with your GitHub password if prompted
-
-> **For GitLab:** Go to [https://gitlab.com/-/user_settings/ssh_keys](https://gitlab.com/-/user_settings/ssh_keys)
->
-> **For Bitbucket:** Go to Bitbucket → Personal Settings → SSH keys
-
----
-
-### Step 4: Test the Connection
-
-Verify that your SSH key is properly configured:
+### Step 4: Test Connection
 
 ```bash
 mgit test YourProfileName
 ```
 
-**Example:**
+**Expected output:**
+```
+✓ SSH connection successful for 'YourProfileName'
+  Hi YourProfileName! You've successfully authenticated.
+```
+
+### Step 5: Start Using
+
 ```bash
-mgit test GitHubUserName
-```
-
-**Expected Output:**
-```
-✓ SSH connection successful for 'GitHubUserName'
-  Hi GitHubUserName! You've successfully authenticated.
-```
-
----
-
-### Step 5: Use Your Account
-
-Now you can use your configured account!
-
-#### Switch to a Profile (Global)
-```bash
+# Switch to a profile (global)
 mgit use YourProfileName
-# or
-mgit switch YourProfileName
-```
 
-#### Switch for Current Repository Only
-```bash
+# Switch for current repository only
 mgit use YourProfileName -l
-```
 
-#### Clone a Repository with Specific Profile
-```bash
+# Clone with specific profile
 mgit clone YourProfileName git@github.com:username/repo.git
 ```
 
 ---
 
-## 📚 All Commands Reference
+## 📚 Commands
 
 | Command | Alias | Description |
 |---------|-------|-------------|
@@ -196,12 +134,12 @@ mgit clone YourProfileName git@github.com:username/repo.git
 
 ---
 
-## 🎯 Common Examples
+## 🎯 Examples
 
 ### Add Multiple Accounts
 
 ```bash
-# Personal GitHub (set as default)
+# Personal GitHub (default)
 mgit add johndoe -d
 
 # Work GitHub
@@ -211,21 +149,10 @@ mgit add john-doe-company -n work
 mgit add jdoe -p gitlab -n freelance
 ```
 
-### View All Your Accounts
+### View All Accounts
 
 ```bash
 mgit ls
-```
-
-**Output:**
-```
-┌───────────┬──────────────────┬─────────────────────┬──────────┬───────────────────────────┬─────────┐
-│ Name      │ Username         │ Email               │ Provider │ Host Alias                │ Default │
-├───────────┼──────────────────┼─────────────────────┼──────────┼───────────────────────────┼─────────┤
-│ johndoe   │ johndoe          │ john@gmail.com      │ github   │ github.com-johndoe        │    ✓    │
-│ work      │ john-doe-company │ john@company.com    │ github   │ github.com-work           │         │
-│ freelance │ jdoe             │ jdoe@gitlab.com     │ gitlab   │ gitlab.com-freelance      │         │
-└───────────┴──────────────────┴─────────────────────┴──────────┴───────────────────────────┴─────────┘
 ```
 
 ### Check Current Configuration
@@ -234,7 +161,7 @@ mgit ls
 mgit current
 ```
 
-### Preview User Info Before Adding
+### Preview User Info
 
 ```bash
 mgit info SomeUsername
@@ -262,13 +189,12 @@ Options:
   --custom-host     Custom hostname (required when provider=custom)
 ```
 
-### Set Up Workspace Auto-Switching
+### Workspace Auto-Switching
+
+Automatically switch profiles based on directory:
 
 ```bash
-# Automatically use 'work' profile in ~/work directory
 mgit workspace work ~/work
-
-# Automatically use 'personal' profile in ~/personal directory
 mgit workspace personal ~/personal
 ```
 
@@ -276,61 +202,39 @@ mgit workspace personal ~/personal
 
 ## 🔧 Troubleshooting
 
-### Installation Fails on macOS with "externally-managed-environment"
+### Installation Issues
 
-Homebrew Python follows [PEP 668](https://peps.python.org/pep-0668/), so global `pip install` is blocked.
-Use either:
+**macOS "externally-managed-environment" error:**
 ```bash
+# Use the installer script (recommended)
 curl -fsSL https://raw.githubusercontent.com/PrajsRamteke/mgit/main/install.sh | bash
-```
-or:
-```bash
+
+# Or use pipx
 brew install pipx && pipx ensurepath
 pipx install git+https://github.com/PrajsRamteke/mgit.git
 ```
 
-### `pipx` / `pip` Command Not Found
-
-Use `python3` directly or install pipx:
-```bash
-brew install pipx
-pipx ensurepath
-```
-Then install:
-```bash
-pipx install git+https://github.com/PrajsRamteke/mgit.git
-```
-
-### `mgit: command not found`
-
-Add local bin directory to your PATH:
+**`mgit: command not found`:**
 ```bash
 echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
 source ~/.zshrc
 ```
 
-### SSH Connection Failed
+### SSH Connection Issues
 
-1. Make sure you added the SSH key to GitHub/GitLab
-2. Run `mgit key <name>` and verify the key matches what's on GitHub
-3. Check if SSH agent is running: `eval "$(ssh-agent -s)"`
+**Connection failed:**
+1. Verify SSH key was added to GitHub/GitLab
+2. Check key matches: `mgit key <name>`
+3. Start SSH agent: `eval "$(ssh-agent -s)"`
 
-### Permission Denied
-
+**Permission denied:**
 ```bash
-# Test the connection
 mgit test YourProfileName
-
-# If it fails, try adding the key to SSH agent manually
 ssh-add ~/.ssh/id_ed25519_YourProfileName
 ```
 
-### Email Not Public
-
-If your email is not public on GitHub, mgit will automatically use your GitHub noreply email:
-```
-⚠ Email not public. Using: 12345678+username@users.noreply.github.com
-```
+**Email not public:**
+mgit automatically uses GitHub noreply email if your email isn't public.
 
 ---
 
