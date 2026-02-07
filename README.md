@@ -8,8 +8,8 @@ Manage multiple Git accounts on a single machine effortlessly. Generate SSH keys
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/multi-git-manager.git
-cd multi-git-manager
+git clone https://github.com/PrajsRamteke/mgit.git
+cd mgit
 
 # Install the package
 pip install -e .
