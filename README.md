@@ -14,6 +14,15 @@ cd mgit
 # Install the package
 pip install -e .
 ```
+Or if you want to use the virtual environment that's already set up:
+
+```bash
+# Activate the virtual environment first
+source .venv/bin/activate
+
+# Then install in development mode
+pip install -e .
+```
 
 ---
 
