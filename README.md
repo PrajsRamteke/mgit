@@ -4,6 +4,10 @@ Manage multiple Git accounts on a single machine effortlessly. Generate SSH keys
 
 ---
 
+🌐 **Live Demo:** [![Website](https://img.shields.io/website?label=mgit.netlify.app&style=flat-square&url=https%3A%2F%2Fmgit.netlify.app%2F)](https://mgit.netlify.app/)
+
+---
+
 ## 📦 Installation
 
 **Quick install (recommended: Copy one by one and paste in terminal):**
