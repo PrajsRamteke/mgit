@@ -1,0 +1,2610 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mgit — Multi-Git Manager</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Space+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #FFF8F0;
+            --bg-alt: #FFF1E0;
+            --card-bg: #FFFFFF;
+            --navy: #1E293B;
+            --navy-light: #334155;
+            --border: #1E293B;
+            --mint: #4ADE80;
+            --mint-dark: #22C55E;
+            --mint-shadow: #16A34A;
+            --pink: #FCA5C1;
+            --pink-light: #FDDDE6;
+            --pink-shadow: #F472B6;
+            --blue: #93C5FD;
+            --blue-light: #DBEAFE;
+            --blue-shadow: #60A5FA;
+            --yellow: #FDE68A;
+            --yellow-light: #FEF9C3;
+            --yellow-shadow: #FBBF24;
+            --purple: #C4B5FD;
+            --purple-light: #EDE9FE;
+            --purple-shadow: #A78BFA;
+            --orange: #FDBA74;
+            --orange-light: #FED7AA;
+            --orange-shadow: #F97316;
+            --text: #1E293B;
+            --text-muted: #475569;
+            --code-bg: #1E293B;
+            --code-text: #E2E8F0;
+            --shadow-offset: 5px;
+            --border-width: 3px;
+            --radius: 18px;
+            --radius-lg: 24px;
+            --radius-pill: 50px;
+        }
+
+        /* ===== THEME VARIANTS ===== */
+        [data-theme="dark"] {
+            --bg: #1a1a2e;
+            --bg-alt: #16213e;
+            --card-bg: #0f0f1a;
+            --navy: #e2e8f0;
+            --navy-light: #cbd5e1;
+            --border: #4a5568;
+            --text: #e2e8f0;
+            --text-muted: #a0aec0;
+            --code-bg: #0a0a14;
+            --code-text: #e2e8f0;
+        }
+
+        [data-theme="ocean"] {
+            --bg: #e0f7fa;
+            --bg-alt: #b2ebf2;
+            --card-bg: #ffffff;
+            --navy: #006064;
+            --navy-light: #00838f;
+            --border: #006064;
+            --mint: #00bcd4;
+            --mint-dark: #0097a7;
+            --mint-shadow: #00838f;
+            --pink: #80deea;
+            --blue: #4dd0e1;
+            --text: #004d40;
+            --text-muted: #00695c;
+        }
+
+        [data-theme="forest"] {
+            --bg: #e8f5e9;
+            --bg-alt: #c8e6c9;
+            --card-bg: #ffffff;
+            --navy: #1b5e20;
+            --navy-light: #2e7d32;
+            --border: #1b5e20;
+            --mint: #66bb6a;
+            --mint-dark: #43a047;
+            --mint-shadow: #2e7d32;
+            --pink: #a5d6a7;
+            --yellow: #c5e1a5;
+            --text: #1b5e20;
+            --text-muted: #388e3c;
+        }
+
+        [data-theme="sunset"] {
+            --bg: #fff3e0;
+            --bg-alt: #ffe0b2;
+            --card-bg: #ffffff;
+            --navy: #e65100;
+            --navy-light: #f57c00;
+            --border: #bf360c;
+            --mint: #ffb74d;
+            --mint-dark: #ffa726;
+            --mint-shadow: #f57c00;
+            --pink: #ffcc80;
+            --yellow: #ffe082;
+            --orange: #ffab40;
+            --text: #bf360c;
+            --text-muted: #e65100;
+        }
+
+        /* ===== THEME SWITCHER ===== */
+        .theme-switcher {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .theme-toggle-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--card-bg);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-pill);
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 3px 3px 0 var(--border);
+        }
+
+        .theme-toggle-btn:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 5px 5px 0 var(--border);
+        }
+
+        .theme-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
+            background: var(--card-bg);
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: 5px 5px 0 var(--border);
+            min-width: 160px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.2s ease;
+            z-index: 1001;
+        }
+
+        .theme-switcher.open .theme-dropdown {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .theme-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--text);
+            transition: background 0.15s;
+            border-bottom: 1px solid var(--bg-alt);
+        }
+
+        .theme-option:last-child {
+            border-bottom: none;
+        }
+
+        .theme-option:hover {
+            background: var(--bg-alt);
+        }
+
+        .theme-option.active {
+            background: var(--mint);
+        }
+
+        .theme-option .theme-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .theme-icon.light {
+            background: linear-gradient(135deg, #FFF8F0, #FFF1E0);
+        }
+
+        .theme-icon.dark {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+        }
+
+        .theme-icon.ocean {
+            background: linear-gradient(135deg, #00bcd4, #4dd0e1);
+        }
+
+        .theme-icon.forest {
+            background: linear-gradient(135deg, #66bb6a, #a5d6a7);
+        }
+
+        .theme-icon.sunset {
+            background: linear-gradient(135deg, #ffb74d, #ffcc80);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 90px;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        /* Decorative Background Shapes */
+        body::before,
+        body::after {
+            content: '';
+            position: fixed;
+            border-radius: 50%;
+            z-index: -1;
+            opacity: 0.3;
+        }
+
+        body::before {
+            width: 400px;
+            height: 400px;
+            background: var(--pink-light);
+            top: -100px;
+            right: -100px;
+            border: var(--border-width) solid var(--border);
+        }
+
+        body::after {
+            width: 300px;
+            height: 300px;
+            background: var(--blue-light);
+            bottom: 200px;
+            left: -80px;
+            border: var(--border-width) solid var(--border);
+        }
+
+        /* ===== NAVBAR ===== */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: var(--card-bg);
+            border-bottom: var(--border-width) solid var(--border);
+            padding: 0 24px;
+            height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--text);
+        }
+
+        .navbar-logo {
+            width: 44px;
+            height: 44px;
+            background: var(--mint);
+            border: var(--border-width) solid var(--border);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 900;
+            box-shadow: 3px 3px 0 var(--border);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .navbar-brand:hover .navbar-logo {
+            transform: translate(-2px, -2px);
+            box-shadow: 5px 5px 0 var(--border);
+        }
+
+        .navbar-title {
+            font-size: 22px;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+        }
+
+        .navbar-title span {
+            color: var(--mint-dark);
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 700;
+            font-size: 14px;
+            padding: 8px 16px;
+            border-radius: var(--radius-pill);
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .nav-links a:hover {
+            background: var(--bg);
+            border-color: var(--border);
+        }
+
+        .nav-cta {
+            background: var(--mint) !important;
+            border-color: var(--border) !important;
+            box-shadow: 3px 3px 0 var(--border);
+            transition: all 0.15s !important;
+        }
+
+        .nav-cta:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 5px 5px 0 var(--border) !important;
+            background: var(--mint) !important;
+        }
+
+        .nav-cta:active {
+            transform: translate(2px, 2px);
+            box-shadow: 1px 1px 0 var(--border) !important;
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+            padding: 8px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            background: var(--card-bg);
+        }
+
+        .hamburger span {
+            width: 24px;
+            height: 3px;
+            background: var(--border);
+            border-radius: 3px;
+            transition: all 0.3s;
+        }
+
+        /* ===== HERO ===== */
+        .hero {
+            margin-top: 72px;
+            padding: 80px 24px 60px;
+            text-align: center;
+            position: relative;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--yellow-light);
+            border: var(--border-width) solid var(--border);
+            border-radius: var(--radius-pill);
+            padding: 8px 20px;
+            font-weight: 800;
+            font-size: 14px;
+            margin-bottom: 28px;
+            box-shadow: 3px 3px 0 var(--border);
+        }
+
+        .hero h1 {
+            font-size: clamp(40px, 7vw, 72px);
+            font-weight: 900;
+            line-height: 1.1;
+            letter-spacing: -2px;
+            margin-bottom: 20px;
+        }
+
+        .hero h1 .highlight {
+            position: relative;
+            display: inline-block;
+        }
+
+        .hero h1 .highlight::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            left: -4px;
+            right: -4px;
+            height: 16px;
+            background: var(--mint);
+            border-radius: 4px;
+            z-index: -1;
+            opacity: 0.5;
+        }
+
+        .hero-subtitle {
+            font-size: clamp(16px, 2.5vw, 20px);
+            color: var(--text-muted);
+            max-width: 640px;
+            margin: 0 auto 36px;
+            font-weight: 600;
+            line-height: 1.6;
+        }
+
+        .hero-actions {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 48px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 32px;
+            border-radius: var(--radius-pill);
+            font-family: 'Nunito', sans-serif;
+            font-weight: 800;
+            font-size: 16px;
+            text-decoration: none;
+            border: var(--border-width) solid var(--border);
+            cursor: pointer;
+            transition: all 0.15s;
+            position: relative;
+        }
+
+        .btn-primary {
+            background: var(--mint);
+            color: var(--text);
+            box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--border);
+        }
+
+        .btn-primary:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 7px 7px 0 var(--border);
+        }
+
+        .btn-primary:active {
+            transform: translate(3px, 3px);
+            box-shadow: 2px 2px 0 var(--border);
+        }
+
+        .btn-secondary {
+            background: var(--card-bg);
+            color: var(--text);
+            box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--border);
+        }
+
+        .btn-secondary:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 7px 7px 0 var(--border);
+        }
+
+        .btn-secondary:active {
+            transform: translate(3px, 3px);
+            box-shadow: 2px 2px 0 var(--border);
+        }
+
+        .btn-pink {
+            background: var(--pink);
+            color: var(--text);
+            box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--border);
+        }
+
+        .btn-pink:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 7px 7px 0 var(--border);
+        }
+
+        .btn-blue {
+            background: var(--blue);
+            color: var(--text);
+            box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--border);
+        }
+
+        .btn-small {
+            padding: 8px 18px;
+            font-size: 13px;
+        }
+
+        .hero-install-preview {
+            max-width: 560px;
+            margin: 0 auto;
+            background: var(--code-bg);
+            border: var(--border-width) solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px 24px;
+            box-shadow: 6px 6px 0 var(--border);
+            text-align: left;
+            position: relative;
+        }
+
+        .hero-install-preview code {
+            font-family: 'Space Mono', monospace;
+            color: var(--code-text);
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        .hero-install-preview .prompt {
+            color: var(--mint);
+            user-select: none;
+        }
+
+        .hero-copy-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: var(--navy-light);
+            color: var(--code-text);
+            border: 2px solid #475569;
+            border-radius: 10px;
+            padding: 6px 14px;
+            font-size: 12px;
+            font-weight: 700;
+            font-family: 'Nunito', sans-serif;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .hero-copy-btn:hover {
+            background: #475569;
+        }
+
+        /* Floating decorative shapes */
+        .deco {
+            position: absolute;
+            border: var(--border-width) solid var(--border);
+            z-index: -1;
+        }
+
+        .deco-circle {
+            border-radius: 50%;
+        }
+
+        .deco-1 {
+            width: 60px;
+            height: 60px;
+            background: var(--pink);
+            top: 120px;
+            left: 8%;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .deco-2 {
+            width: 40px;
+            height: 40px;
+            background: var(--blue);
+            top: 180px;
+            right: 10%;
+            animation: float 5s ease-in-out infinite 1s;
+        }
+
+        .deco-3 {
+            width: 50px;
+            height: 50px;
+            background: var(--yellow);
+            bottom: 80px;
+            left: 15%;
+            border-radius: 14px;
+            animation: float 7s ease-in-out infinite 0.5s;
+            transform: rotate(15deg);
+        }
+
+        .deco-4 {
+            width: 35px;
+            height: 35px;
+            background: var(--purple);
+            bottom: 120px;
+            right: 12%;
+            border-radius: 10px;
+            animation: float 4.5s ease-in-out infinite 2s;
+            transform: rotate(-20deg);
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(var(--rot, 0deg));
+            }
+
+            50% {
+                transform: translateY(-20px) rotate(var(--rot, 0deg));
+            }
+        }
+
+        /* ===== CONTAINER ===== */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* ===== SECTION ===== */
+        .section {
+            margin-bottom: 64px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+
+        .section-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 16px;
+            border: var(--border-width) solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 4px 4px 0 var(--border);
+            flex-shrink: 0;
+        }
+
+        .section-icon.mint {
+            background: var(--mint);
+        }
+
+        .section-icon.pink {
+            background: var(--pink);
+        }
+
+        .section-icon.blue {
+            background: var(--blue);
+        }
+
+        .section-icon.yellow {
+            background: var(--yellow);
+        }
+
+        .section-icon.purple {
+            background: var(--purple);
+        }
+
+        .section-icon.orange {
+            background: var(--orange);
+        }
+
+        .section-title {
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+        }
+
+        /* ===== CARDS ===== */
+        .card {
+            background: var(--card-bg);
+            border: var(--border-width) solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--border);
+            margin-bottom: 24px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 7px 7px 0 var(--border);
+        }
+
+        .card-accent-mint {
+            border-left: 6px solid var(--mint);
+        }
+
+        .card-accent-pink {
+            border-left: 6px solid var(--pink);
+        }
+
+        .card-accent-blue {
+            border-left: 6px solid var(--blue);
+        }
+
+        .card-accent-yellow {
+            border-left: 6px solid var(--yellow);
+        }
+
+        .card-accent-purple {
+            border-left: 6px solid var(--purple);
+        }
+
+        .card h3 {
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card p {
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        /* ===== CODE BLOCKS ===== */
+        .code-block {
+            background: var(--code-bg);
+            border: var(--border-width) solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px 24px;
+            margin: 16px 0;
+            overflow-x: auto;
+            position: relative;
+            box-shadow: 4px 4px 0 var(--border);
+        }
+
+        .code-block code {
+            font-family: 'Space Mono', monospace;
+            font-size: 13.5px;
+            color: var(--code-text);
+            line-height: 1.8;
+            white-space: pre;
+        }
+
+        .code-block .comment {
+            color: #64748B;
+        }
+
+        .code-block .cmd {
+            color: var(--mint);
+        }
+
+        .code-block .flag {
+            color: var(--yellow);
+        }
+
+        .code-block .string {
+            color: var(--pink);
+        }
+
+        .code-block .prompt {
+            color: var(--mint);
+            user-select: none;
+        }
+
+        .code-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .code-lang {
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: #94A3B8;
+            letter-spacing: 1px;
+        }
+
+        .copy-btn {
+            background: var(--navy-light);
+            color: var(--code-text);
+            border: 2px solid #475569;
+            border-radius: 10px;
+            padding: 5px 14px;
+            font-size: 12px;
+            font-weight: 700;
+            font-family: 'Nunito', sans-serif;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .copy-btn:hover {
+            background: #475569;
+            transform: translateY(-1px);
+        }
+
+        .copy-btn.copied {
+            background: var(--mint-dark);
+            border-color: var(--mint-dark);
+            color: white;
+        }
+
+        /* ===== OUTPUT BLOCKS ===== */
+        .output-block {
+            background: var(--bg-alt);
+            border: var(--border-width) solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px 22px;
+            margin: 12px 0;
+            box-shadow: 3px 3px 0 var(--border);
+            border-left: 5px solid var(--mint);
+        }
+
+        .output-block code {
+            font-family: 'Space Mono', monospace;
+            font-size: 13px;
+            color: var(--text);
+            line-height: 1.8;
+            white-space: pre;
+        }
+
+        .output-block .success {
+            color: var(--mint-dark);
+        }
+
+        .output-block .info {
+            color: var(--blue-shadow);
+        }
+
+        /* ===== STEPS ===== */
+        .steps {
+            counter-reset: step;
+        }
+
+        .step {
+            position: relative;
+            padding-left: 80px;
+            margin-bottom: 48px;
+            min-height: 60px;
+        }
+
+        .step::before {
+            counter-increment: step;
+            content: counter(step);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 56px;
+            height: 56px;
+            background: var(--mint);
+            border: var(--border-width) solid var(--border);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 900;
+            box-shadow: 4px 4px 0 var(--border);
+        }
+
+        .step:nth-child(2)::before {
+            background: var(--blue);
+        }
+
+        .step:nth-child(3)::before {
+            background: var(--pink);
+        }
+
+        .step:nth-child(4)::before {
+            background: var(--yellow);
+        }
+
+        .step:nth-child(5)::before {
+            background: var(--purple);
+        }
+
+        .step h3 {
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .step p {
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-bottom: 14px;
+        }
+
+        /* ===== TABLE ===== */
+        .table-wrapper {
+            overflow-x: auto;
+            margin: 16px 0;
+        }
+
+        .table-card {
+            background: var(--card-bg);
+            border: var(--border-width) solid var(--border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: var(--navy);
+            color: white;
+        }
+
+        th {
+            padding: 16px 20px;
+            text-align: left;
+            font-weight: 800;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 14px 20px;
+            border-top: 2px solid var(--bg);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        td code {
+            font-family: 'Space Mono', monospace;
+            background: var(--bg);
+            padding: 3px 10px;
+            border-radius: 8px;
+            font-size: 12.5px;
+            border: 2px solid #E2E8F0;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        tbody tr:hover {
+            background: var(--bg);
+        }
+
+        tbody tr:nth-child(even) {
+            background: #FAFAF8;
+        }
+
+        tbody tr:nth-child(even):hover {
+            background: var(--bg);
+        }
+
+        /* ===== INFO BOXES ===== */
+        .info-box {
+            display: flex;
+            gap: 14px;
+            padding: 18px 22px;
+            border-radius: var(--radius);
+            border: var(--border-width) solid var(--border);
+            margin: 16px 0;
+            font-weight: 600;
+            box-shadow: 3px 3px 0 var(--border);
+        }
+
+        .info-box.tip {
+            background: #ECFDF5;
+            border-left: 5px solid var(--mint);
+        }
+
+        .info-box.warning {
+            background: var(--yellow-light);
+            border-left: 5px solid var(--yellow-shadow);
+        }
+
+        .info-box.note {
+            background: var(--blue-light);
+            border-left: 5px solid var(--blue-shadow);
+        }
+
+        .info-box-icon {
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        /* ===== TABS ===== */
+        .tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: -3px;
+            position: relative;
+            z-index: 1;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 10px 22px;
+            border: var(--border-width) solid var(--border);
+            border-bottom: none;
+            border-radius: 14px 14px 0 0;
+            background: var(--bg);
+            font-family: 'Nunito', sans-serif;
+            font-weight: 800;
+            font-size: 14px;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: var(--card-bg);
+            color: var(--text);
+            border-bottom: 3px solid var(--card-bg);
+            margin-bottom: -3px;
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: var(--bg-alt);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* ===== FEATURES GRID ===== */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+            margin: 28px 0;
+        }
+
+        .feature-card {
+            background: var(--card-bg);
+            border: var(--border-width) solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--border);
+            transition: all 0.2s;
+        }
+
+        .feature-card:hover {
+            transform: translate(-3px, -3px);
+            box-shadow: 8px 8px 0 var(--border);
+        }
+
+        .feature-card:nth-child(1) {
+            border-top: 5px solid var(--mint);
+        }
+
+        .feature-card:nth-child(2) {
+            border-top: 5px solid var(--pink);
+        }
+
+        .feature-card:nth-child(3) {
+            border-top: 5px solid var(--blue);
+        }
+
+        .feature-card:nth-child(4) {
+            border-top: 5px solid var(--yellow);
+        }
+
+        .feature-card:nth-child(5) {
+            border-top: 5px solid var(--purple);
+        }
+
+        .feature-card:nth-child(6) {
+            border-top: 5px solid var(--orange);
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            border: var(--border-width) solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            margin-bottom: 14px;
+            box-shadow: 3px 3px 0 var(--border);
+        }
+
+        .feature-card:nth-child(1) .feature-icon {
+            background: var(--mint);
+        }
+
+        .feature-card:nth-child(2) .feature-icon {
+            background: var(--pink);
+        }
+
+        .feature-card:nth-child(3) .feature-icon {
+            background: var(--blue);
+        }
+
+        .feature-card:nth-child(4) .feature-icon {
+            background: var(--yellow);
+        }
+
+        .feature-card:nth-child(5) .feature-icon {
+            background: var(--purple);
+        }
+
+        .feature-card:nth-child(6) .feature-icon {
+            background: var(--orange);
+        }
+
+        .feature-card h4 {
+            font-size: 16px;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .feature-card p {
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        /* ===== ACCORDION ===== */
+        .accordion-item {
+            background: var(--card-bg);
+            border: var(--border-width) solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 12px;
+            box-shadow: 4px 4px 0 var(--border);
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        .accordion-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 22px;
+            cursor: pointer;
+            font-weight: 800;
+            font-size: 16px;
+            user-select: none;
+            transition: background 0.2s;
+        }
+
+        .accordion-header:hover {
+            background: var(--bg);
+        }
+
+        .accordion-header .icon {
+            font-size: 20px;
+            transition: transform 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            background: var(--bg);
+            border: 2px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .accordion-item.open .accordion-header .icon {
+            transform: rotate(45deg);
+        }
+
+        .accordion-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+        }
+
+        .accordion-body-inner {
+            padding: 0 22px 22px;
+        }
+
+        .accordion-item.open .accordion-body {
+            max-height: 800px;
+        }
+
+        /* ===== OPTIONS LIST ===== */
+        .options-list {
+            list-style: none;
+        }
+
+        .options-list li {
+            padding: 10px 0;
+            border-bottom: 2px dashed #E2E8F0;
+            display: flex;
+            gap: 12px;
+            align-items: baseline;
+        }
+
+        .options-list li:last-child {
+            border-bottom: none;
+        }
+
+        .option-flag {
+            font-family: 'Space Mono', monospace;
+            background: var(--bg);
+            padding: 2px 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            border: 2px solid #E2E8F0;
+            white-space: nowrap;
+            color: var(--navy);
+        }
+
+        .option-desc {
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* ===== PROVIDER BADGES ===== */
+        .provider-badges {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 8px 0;
+        }
+
+        .provider-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 18px;
+            border-radius: var(--radius-pill);
+            border: var(--border-width) solid var(--border);
+            font-weight: 700;
+            font-size: 14px;
+            box-shadow: 3px 3px 0 var(--border);
+            cursor: default;
+            transition: all 0.15s;
+        }
+
+        .provider-badge:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 5px 5px 0 var(--border);
+        }
+
+        .provider-badge.github {
+            background: #F3F4F6;
+        }
+
+        .provider-badge.gitlab {
+            background: #FDE7D9;
+        }
+
+        .provider-badge.bitbucket {
+            background: var(--blue-light);
+        }
+
+        /* ===== INLINE CODE ===== */
+        p code,
+        li code,
+        td code,
+        .inline-code {
+            font-family: 'Space Mono', monospace;
+            background: var(--bg);
+            padding: 2px 8px;
+            border-radius: 8px;
+            font-size: 13px;
+            border: 2px solid #E2E8F0;
+            font-weight: 700;
+        }
+
+        /* ===== DIVIDER ===== */
+        .divider {
+            height: 4px;
+            background: var(--border);
+            border-radius: 4px;
+            margin: 60px 0;
+            position: relative;
+        }
+
+        .divider::after {
+            content: '✦';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--bg);
+            padding: 0 16px;
+            font-size: 20px;
+        }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            background: var(--navy);
+            color: white;
+            padding: 48px 24px;
+            margin-top: 80px;
+            border-top: var(--border-width) solid var(--border);
+        }
+
+        .footer-content {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 24px;
+        }
+
+        .footer-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .footer-logo {
+            width: 40px;
+            height: 40px;
+            background: var(--mint);
+            border: 3px solid white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 900;
+            color: var(--text);
+        }
+
+        .footer-title {
+            font-weight: 900;
+            font-size: 18px;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 20px;
+            list-style: none;
+        }
+
+        .footer-links a {
+            color: #94A3B8;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: var(--mint);
+        }
+
+        .footer-bottom {
+            max-width: 900px;
+            margin: 28px auto 0;
+            padding-top: 28px;
+            border-top: 2px solid #334155;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .footer-bottom p {
+            color: #64748B;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .footer-bottom .license-badge {
+            background: #334155;
+            color: #94A3B8;
+            padding: 6px 16px;
+            border-radius: var(--radius-pill);
+            font-size: 13px;
+            font-weight: 700;
+            border: 2px solid #475569;
+        }
+
+        /* ===== SCROLL TO TOP ===== */
+        .scroll-top {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            width: 48px;
+            height: 48px;
+            background: var(--mint);
+            border: var(--border-width) solid var(--border);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 4px 4px 0 var(--border);
+            transition: all 0.2s;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        .scroll-top.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .scroll-top:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0 var(--border);
+        }
+
+        .scroll-top:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0 var(--border);
+        }
+
+        /* ===== TOC SIDEBAR (Desktop) ===== */
+        .toc-wrapper {
+            position: fixed;
+            left: 24px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 100;
+            display: none;
+        }
+
+        @media (min-width: 1280px) {
+            .toc-wrapper {
+                display: block;
+            }
+        }
+
+        .toc {
+            background: var(--card-bg);
+            border: var(--border-width) solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            box-shadow: 4px 4px 0 var(--border);
+            list-style: none;
+            max-width: 180px;
+        }
+
+        .toc li {
+            margin-bottom: 4px;
+        }
+
+        .toc a {
+            display: block;
+            padding: 6px 12px;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 700;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .toc a:hover,
+        .toc a.active {
+            background: var(--mint);
+            color: var(--text);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 0 16px;
+            }
+
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 72px;
+                left: 0;
+                right: 0;
+                background: var(--card-bg);
+                border-bottom: var(--border-width) solid var(--border);
+                flex-direction: column;
+                padding: 16px;
+                gap: 8px;
+            }
+
+            .nav-links.open {
+                display: flex;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            .hero {
+                padding: 60px 16px 40px;
+            }
+
+            .hero h1 {
+                letter-spacing: -1px;
+            }
+
+            .section-title {
+                font-size: 22px;
+            }
+
+            .step {
+                padding-left: 68px;
+            }
+
+            .step::before {
+                width: 48px;
+                height: 48px;
+                font-size: 20px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .code-block {
+                padding: 16px;
+                border-radius: 14px;
+            }
+
+            .code-block code {
+                font-size: 12px;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .footer-links {
+                justify-content: center;
+            }
+
+            .footer-bottom {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            table {
+                font-size: 13px;
+            }
+
+            th,
+            td {
+                padding: 10px 14px;
+            }
+        }
+
+        /* ===== ANIMATIONS ===== */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s, transform 0.5s;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Stagger children */
+        .stagger>* {
+            opacity: 0;
+            transform: translateY(16px);
+            transition: opacity 0.4s, transform 0.4s;
+        }
+
+        .stagger.visible>*:nth-child(1) {
+            transition-delay: 0.05s;
+        }
+
+        .stagger.visible>*:nth-child(2) {
+            transition-delay: 0.1s;
+        }
+
+        .stagger.visible>*:nth-child(3) {
+            transition-delay: 0.15s;
+        }
+
+        .stagger.visible>*:nth-child(4) {
+            transition-delay: 0.2s;
+        }
+
+        .stagger.visible>*:nth-child(5) {
+            transition-delay: 0.25s;
+        }
+
+        .stagger.visible>*:nth-child(6) {
+            transition-delay: 0.3s;
+        }
+
+        .stagger.visible>* {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ===== SELECTION ===== */
+        ::selection {
+            background: var(--mint);
+            color: var(--text);
+        }
+
+        /* ===== SCROLLBAR ===== */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 10px;
+            border: 2px solid var(--bg);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94A3B8;
+        }
+
+        .link-list {
+            list-style: none;
+            margin: 12px 0;
+        }
+
+        .link-list li {
+            padding: 8px 0;
+        }
+
+        .link-list a {
+            color: var(--navy);
+            font-weight: 700;
+            text-decoration: none;
+            border-bottom: 3px solid var(--mint);
+            transition: all 0.2s;
+            padding-bottom: 2px;
+        }
+
+        .link-list a:hover {
+            background: var(--mint);
+            padding: 2px 6px;
+            border-radius: 4px;
+            border-bottom-color: transparent;
+        }
+
+        .numbered-list {
+            list-style: none;
+            counter-reset: numlist;
+            margin: 12px 0;
+        }
+
+        .numbered-list li {
+            counter-increment: numlist;
+            padding: 8px 0 8px 36px;
+            position: relative;
+            font-weight: 600;
+        }
+
+        .numbered-list li::before {
+            content: counter(numlist);
+            position: absolute;
+            left: 0;
+            width: 26px;
+            height: 26px;
+            background: var(--mint);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 800;
+            top: 7px;
+        }
+
+        /* Tag Badges */
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: var(--radius-pill);
+            font-size: 12px;
+            font-weight: 800;
+            border: 2px solid var(--border);
+        }
+
+        .tag-mint {
+            background: var(--mint);
+        }
+
+        .tag-pink {
+            background: var(--pink);
+        }
+
+        .tag-blue {
+            background: var(--blue);
+        }
+
+        .tag-yellow {
+            background: var(--yellow);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ===== NAVBAR ===== -->
+    <nav class="navbar">
+        <a href="#" class="navbar-brand">
+            <div class="navbar-logo">🔐</div>
+            <div class="navbar-title"><span>m</span>git</div>
+        </a>
+        <ul class="nav-links" id="navLinks">
+            <li><a href="#installation">Install</a></li>
+            <li><a href="#quickstart">Quick Start</a></li>
+            <li><a href="#commands">Commands</a></li>
+            <li><a href="#examples">Examples</a></li>
+            <li><a href="#troubleshooting">Help</a></li>
+            <li><a href="https://github.com/PrajsRamteke/mgit" target="_blank" class="nav-cta">⭐ GitHub</a></li>
+        </ul>
+        <!-- Theme Switcher -->
+        <div class="theme-switcher" id="themeSwitcher">
+            <button class="theme-toggle-btn" onclick="toggleThemeDropdown()">
+                <span id="currentThemeIcon">🎨</span>
+                <span>Theme</span>
+            </button>
+            <div class="theme-dropdown">
+                <div class="theme-option" data-theme="light" onclick="setTheme('light')">
+                    <span class="theme-icon light">☀️</span>
+                    <span>Light</span>
+                </div>
+                <div class="theme-option" data-theme="dark" onclick="setTheme('dark')">
+                    <span class="theme-icon dark">🌙</span>
+                    <span>Dark</span>
+                </div>
+                <div class="theme-option" data-theme="ocean" onclick="setTheme('ocean')">
+                    <span class="theme-icon ocean">🌊</span>
+                    <span>Ocean</span>
+                </div>
+                <div class="theme-option" data-theme="forest" onclick="setTheme('forest')">
+                    <span class="theme-icon forest">🌲</span>
+                    <span>Forest</span>
+                </div>
+                <div class="theme-option" data-theme="sunset" onclick="setTheme('sunset')">
+                    <span class="theme-icon sunset">🌅</span>
+                    <span>Sunset</span>
+                </div>
+            </div>
+        </div>
+        <div class="hamburger" id="hamburger" onclick="toggleNav()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </nav>
+
+    <!-- ===== TOC SIDEBAR ===== -->
+    <div class="toc-wrapper">
+        <ul class="toc">
+            <li><a href="#installation">📦 Install</a></li>
+            <li><a href="#quickstart">🚀 Quick Start</a></li>
+            <li><a href="#commands">📚 Commands</a></li>
+            <li><a href="#examples">🎯 Examples</a></li>
+            <li><a href="#advanced">⚙️ Advanced</a></li>
+            <li><a href="#troubleshooting">🔧 Troubleshoot</a></li>
+        </ul>
+    </div>
+
+    <!-- ===== HERO ===== -->
+    <section class="hero">
+        <div class="deco deco-circle deco-1"></div>
+        <div class="deco deco-circle deco-2"></div>
+        <div class="deco deco-3"></div>
+        <div class="deco deco-4"></div>
+
+        <div class="hero-badge">✨ Open Source CLI Tool</div>
+        <h1>
+            Multi-Git <span class="highlight">Manager</span>
+        </h1>
+        <p class="hero-subtitle">
+            Manage multiple Git accounts on a single machine effortlessly. Generate SSH keys, configure aliases, and
+            switch identities with ease.
+        </p>
+
+        <div class="hero-actions">
+            <a href="#installation" class="btn btn-primary">📦 Install Now</a>
+            <a href="#quickstart" class="btn btn-secondary">🚀 Quick Start</a>
+            <a href="https://github.com/PrajsRamteke/mgit" target="_blank" class="btn btn-pink">⭐ Star on GitHub</a>
+        </div>
+
+        <div class="provider-badges" style="justify-content: center; margin-bottom: 36px;">
+            <span class="provider-badge github">🐙 GitHub</span>
+            <span class="provider-badge gitlab">🦊 GitLab</span>
+            <span class="provider-badge bitbucket">🪣 Bitbucket</span>
+        </div>
+
+        <div class="hero-install-preview">
+            <button class="hero-copy-btn"
+                onclick="copyToClipboard('curl -fsSL https://raw.githubusercontent.com/PrajsRamteke/mgit/main/install.sh | bash', this)">📋
+                Copy</button>
+            <code><span class="prompt">$ </span>curl -fsSL https://raw.githubusercontent.com/PrajsRamteke/mgit/main/install.sh | bash</code>
+        </div>
+    </section>
+
+    <!-- ===== FEATURES ===== -->
+    <div class="container">
+        <div class="features-grid fade-in stagger">
+            <div class="feature-card">
+                <div class="feature-icon">🔑</div>
+                <h4>SSH Key Generation</h4>
+                <p>Auto-generate ed25519 or RSA keys per profile — no manual setup needed.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔄</div>
+                <h4>One-Command Switch</h4>
+                <p>Instantly switch Git identities globally or per-repo with a single command.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🌐</div>
+                <h4>Multi-Provider</h4>
+                <p>Works with GitHub, GitLab, Bitbucket, and custom Git hosts.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📡</div>
+                <h4>Auto-Fetch Info</h4>
+                <p>Automatically fetches name and email from your Git provider profile.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📂</div>
+                <h4>Workspace Profiles</h4>
+                <p>Auto-switch profiles based on your working directory.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">✅</div>
+                <h4>Connection Testing</h4>
+                <p>Verify your SSH setup works before pushing any code.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="divider"></div>
+    </div>
+
+    <!-- ===== INSTALLATION ===== -->
+    <div class="container" id="installation">
+        <section class="section fade-in">
+            <div class="section-header">
+                <div class="section-icon mint">📦</div>
+                <h2 class="section-title">Installation</h2>
+            </div>
+
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab(event, 'tab-quick')">🚀 Quick Install</button>
+                <button class="tab-btn" onclick="switchTab(event, 'tab-pipx')">📦 pipx</button>
+            </div>
+
+            <div class="card" style="border-radius: 0 var(--radius-lg) var(--radius-lg) var(--radius-lg);">
+                <div id="tab-quick" class="tab-content active">
+                    <h3>⚡ Quick Install <span class="tag tag-mint" style="margin-left: 8px;">Recommended</span></h3>
+                    <p>Copy each line and paste in your terminal one by one:</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">bash</span>
+                            <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+                        </div>
+                        <code><span class="comment"># Install mgit</span>
+<span class="prompt">$ </span><span class="cmd">curl</span> <span class="flag">-fsSL</span> https://raw.githubusercontent.com/PrajsRamteke/mgit/main/install.sh | <span class="cmd">bash</span>
+
+<span class="comment"># Add to PATH</span>
+<span class="prompt">$ </span><span class="cmd">echo</span> <span class="string">'export PATH="$HOME/.local/bin:$PATH"'</span> >> ~/.zshrc
+<span class="prompt">$ </span><span class="cmd">source</span> ~/.zshrc
+
+<span class="comment"># Verify</span>
+<span class="prompt">$ </span><span class="cmd">mgit</span> <span class="flag">--version</span>
+<span class="prompt">$ </span><span class="cmd">mgit</span> <span class="flag">--help</span></code>
+                    </div>
+                </div>
+
+                <div id="tab-pipx" class="tab-content">
+                    <h3>📦 Install with pipx</h3>
+                    <p>Use pipx for isolated package management:</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">bash</span>
+                            <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+                        </div>
+                        <code><span class="comment"># Install pipx (if needed)</span>
+<span class="prompt">$ </span><span class="cmd">brew</span> install pipx
+<span class="prompt">$ </span><span class="cmd">pipx</span> ensurepath
+
+<span class="comment"># Install mgit</span>
+<span class="prompt">$ </span><span class="cmd">pipx</span> install git+https://github.com/PrajsRamteke/mgit.git</code>
+                    </div>
+                </div>
+
+                <div style="margin-top: 16px;">
+                    <p><strong>Verify installation:</strong></p>
+                    <div class="code-block">
+                        <code><span class="prompt">$ </span><span class="cmd">mgit</span> <span class="flag">--version</span>
+<span class="prompt">$ </span><span class="cmd">mgit</span> <span class="flag">--help</span></code>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="container">
+        <div class="divider"></div>
+    </div>
+
+    <!-- ===== QUICK START ===== -->
+    <div class="container" id="quickstart">
+        <section class="section fade-in">
+            <div class="section-header">
+                <div class="section-icon blue">🚀</div>
+                <h2 class="section-title">Quick Start</h2>
+            </div>
+
+            <div class="steps">
+                <!-- Step 1 -->
+                <div class="step fade-in">
+                    <h3>Add Your Account</h3>
+                    <p>Just provide your GitHub/GitLab username — mgit automatically fetches your name and email!</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">bash</span>
+                            <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+                        </div>
+                        <code><span class="comment"># Add GitHub account (set as default)</span>
+<span class="prompt">$ </span><span class="cmd">mgit</span> add YourGitHubUsername <span class="flag">-d</span>
+
+<span class="comment"># Add with custom profile name</span>
+<span class="prompt">$ </span><span class="cmd">mgit</span> add YourGitHubUsername <span class="flag">-n</span> work
+
+<span class="comment"># Add GitLab account</span>
+<span class="prompt">$ </span><span class="cmd">mgit</span> add YourGitLabUsername <span class="flag">-p</span> gitlab
+
+<span class="comment"># Add Bitbucket account</span>
+<span class="prompt">$ </span><span class="cmd">mgit</span> add YourBitbucketUsername <span class="flag">-p</span> bitbucket</code>
+                    </div>
+
+                    <div class="output-block">
+                        <code><span class="info">ℹ</span> Fetching user details from github...
+  Name: Your Name
+  Email: your@email.com
+<span class="success">✓</span> Profile 'YourGitHubUsername' created successfully!</code>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="step fade-in">
+                    <h3>Get Your SSH Public Key</h3>
+                    <p>Copy your public key to add it to GitHub/GitLab:</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">bash</span>
+                            <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+                        </div>
+                        <code><span class="prompt">$ </span><span class="cmd">mgit</span> key YourProfileName</code>
+                    </div>
+
+                    <div class="output-block">
+                        <code>Public key for 'YourProfileName':
+
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIG... your@email.com</code>
+                    </div>
+
+                    <div class="info-box tip">
+                        <div class="info-box-icon">📋</div>
+                        <div><strong>Copy the entire key</strong> — you'll need it in the next step!</div>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="step fade-in">
+                    <h3>Add SSH Key to Your Provider</h3>
+                    <p>Add the copied SSH key to your Git provider:</p>
+
+                    <div class="features-grid"
+                        style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                        <div class="card" style="margin: 0; padding: 18px;">
+                            <h3 style="font-size: 16px;">🐙 GitHub</h3>
+                            <ol class="numbered-list">
+                                <li>Go to <a href="https://github.com/settings/keys" target="_blank"
+                                        style="color: var(--navy); font-weight: 700; border-bottom: 2px solid var(--mint);">SSH
+                                        Settings</a></li>
+                                <li>Click <strong>"New SSH key"</strong></li>
+                                <li>Paste your key & save</li>
+                            </ol>
+                        </div>
+                        <div class="card" style="margin: 0; padding: 18px;">
+                            <h3 style="font-size: 16px;">🦊 GitLab</h3>
+                            <p style="margin: 0;"><a href="https://gitlab.com/-/user_settings/ssh_keys" target="_blank"
+                                    style="color: var(--navy); font-weight: 700; border-bottom: 2px solid var(--pink);">GitLab
+                                    SSH Keys →</a></p>
+                        </div>
+                        <div class="card" style="margin: 0; padding: 18px;">
+                            <h3 style="font-size: 16px;">🪣 Bitbucket</h3>
+                            <p style="margin: 0;">Personal Settings → SSH keys</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="step fade-in">
+                    <h3>Test Connection</h3>
+                    <p>Verify everything works correctly:</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">bash</span>
+                            <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+                        </div>
+                        <code><span class="prompt">$ </span><span class="cmd">mgit</span> test YourProfileName</code>
+                    </div>
+
+                    <div class="output-block">
+                        <code><span class="success">✓</span> SSH connection successful for 'YourProfileName'
+  Hi YourProfileName! You've successfully authenticated.</code>
+                    </div>
+                </div>
+
+                <!-- Step 5 -->
+                <div class="step fade-in">
+                    <h3>Start Using!</h3>
+                    <p>Switch profiles and clone repos with ease:</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">bash</span>
+                            <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+                        </div>
+                        <code><span class="comment"># Switch to a profile (global)</span>
+<span class="prompt">$ </span><span class="cmd">mgit</span> use YourProfileName
+
+<span class="comment"># Switch for current repository only</span>
+<span class="prompt">$ </span><span class="cmd">mgit</span> use YourProfileName <span class="flag">-l</span>
+
+<span class="comment"># Clone with specific profile</span>
+<span class="prompt">$ </span><span class="cmd">mgit</span> clone YourProfileName git@github.com:username/repo.git</code>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="container">
+        <div class="divider"></div>
+    </div>
+
+    <!-- ===== COMMANDS ===== -->
+    <div class="container" id="commands">
+        <section class="section fade-in">
+            <div class="section-header">
+                <div class="section-icon yellow">📚</div>
+                <h2 class="section-title">Commands</h2>
+            </div>
+
+            <div class="table-wrapper">
+                <div class="table-card">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Command</th>
+                                <th>Alias</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>mgit add &lt;username&gt;</code></td>
+                                <td>—</td>
+                                <td>Add a new account profile</td>
+                            </tr>
+                            <tr>
+                                <td><code>mgit remove &lt;name&gt;</code></td>
+                                <td><code>mgit rm</code></td>
+                                <td>Remove a profile</td>
+                            </tr>
+                            <tr>
+                                <td><code>mgit list</code></td>
+                                <td><code>mgit ls</code></td>
+                                <td>List all profiles</td>
+                            </tr>
+                            <tr>
+                                <td><code>mgit switch &lt;name&gt;</code></td>
+                                <td><code>mgit use</code></td>
+                                <td>Switch to a profile</td>
+                            </tr>
+                            <tr>
+                                <td><code>mgit show-key &lt;name&gt;</code></td>
+                                <td><code>mgit key</code></td>
+                                <td>Show SSH public key</td>
+                            </tr>
+                            <tr>
+                                <td><code>mgit test &lt;name&gt;</code></td>
+                                <td>—</td>
+                                <td>Test SSH connection</td>
+                            </tr>
+                            <tr>
+                                <td><code>mgit current</code></td>
+                                <td>—</td>
+                                <td>Show current config</td>
+                            </tr>
+                            <tr>
+                                <td><code>mgit clone &lt;name&gt; &lt;url&gt;</code></td>
+                                <td>—</td>
+                                <td>Clone with specific profile</td>
+                            </tr>
+                            <tr>
+                                <td><code>mgit info &lt;username&gt;</code></td>
+                                <td>—</td>
+                                <td>Preview user info without adding</td>
+                            </tr>
+                            <tr>
+                                <td><code>mgit workspace &lt;name&gt; &lt;dir&gt;</code></td>
+                                <td>—</td>
+                                <td>Set workspace for auto-switching</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="container">
+        <div class="divider"></div>
+    </div>
+
+    <!-- ===== EXAMPLES ===== -->
+    <div class="container" id="examples">
+        <section class="section fade-in">
+            <div class="section-header">
+                <div class="section-icon pink">🎯</div>
+                <h2 class="section-title">Examples</h2>
+            </div>
+
+            <div class="card card-accent-mint fade-in">
+                <h3>👥 Add Multiple Accounts</h3>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">bash</span>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+                    </div>
+                    <code><span class="comment"># Personal GitHub (default)</span>
+<span class="prompt">$ </span><span class="cmd">mgit</span> add johndoe <span class="flag">-d</span>
+
+<span class="comment"># Work GitHub</span>
+<span class="prompt">$ </span><span class="cmd">mgit</span> add john-doe-company <span class="flag">-n</span> work
+
+<span class="comment"># GitLab account</span>
+<span class="prompt">$ </span><span class="cmd">mgit</span> add jdoe <span class="flag">-p</span> gitlab <span class="flag">-n</span> freelance</code>
+                </div>
+            </div>
+
+            <div class="card card-accent-blue fade-in">
+                <h3>📋 View All Accounts</h3>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">bash</span>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+                    </div>
+                    <code><span class="prompt">$ </span><span class="cmd">mgit</span> ls</code>
+                </div>
+            </div>
+
+            <div class="card card-accent-yellow fade-in">
+                <h3>🔍 Check Current Configuration</h3>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">bash</span>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+                    </div>
+                    <code><span class="prompt">$ </span><span class="cmd">mgit</span> current</code>
+                </div>
+            </div>
+
+            <div class="card card-accent-purple fade-in">
+                <h3>👀 Preview User Info</h3>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">bash</span>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+                    </div>
+                    <code><span class="prompt">$ </span><span class="cmd">mgit</span> info SomeUsername
+<span class="prompt">$ </span><span class="cmd">mgit</span> info SomeUser <span class="flag">-p</span> gitlab</code>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="container">
+        <div class="divider"></div>
+    </div>
+
+    <!-- ===== ADVANCED ===== -->
+    <div class="container" id="advanced">
+        <section class="section fade-in">
+            <div class="section-header">
+                <div class="section-icon purple">⚙️</div>
+                <h2 class="section-title">Advanced Options</h2>
+            </div>
+
+            <div class="card fade-in">
+                <h3>🏷️ Add Command Options</h3>
+                <div class="code-block" style="margin-bottom: 16px;">
+                    <code><span class="cmd">mgit</span> add &lt;username&gt; [OPTIONS]</code>
+                </div>
+
+                <ul class="options-list">
+                    <li>
+                        <span class="option-flag">-p, --provider</span>
+                        <span class="option-desc">Git provider: <code>github</code>, <code>gitlab</code>,
+                            <code>bitbucket</code>, <code>custom</code> (default: github)</span>
+                    </li>
+                    <li>
+                        <span class="option-flag">-n, --name</span>
+                        <span class="option-desc">Profile name (default: username)</span>
+                    </li>
+                    <li>
+                        <span class="option-flag">-e, --email</span>
+                        <span class="option-desc">Override email (auto-fetched if not provided)</span>
+                    </li>
+                    <li>
+                        <span class="option-flag">-d, --default</span>
+                        <span class="option-desc">Set as default profile</span>
+                    </li>
+                    <li>
+                        <span class="option-flag">-w, --workspace</span>
+                        <span class="option-desc">Workspace directory for auto-switching</span>
+                    </li>
+                    <li>
+                        <span class="option-flag">-k, --key-type</span>
+                        <span class="option-desc">SSH key type: <code>ed25519</code>, <code>rsa</code> (default:
+                            ed25519)</span>
+                    </li>
+                    <li>
+                        <span class="option-flag">--passphrase</span>
+                        <span class="option-desc">SSH key passphrase</span>
+                    </li>
+                    <li>
+                        <span class="option-flag">--signing-key</span>
+                        <span class="option-desc">GPG signing key ID</span>
+                    </li>
+                    <li>
+                        <span class="option-flag">--custom-host</span>
+                        <span class="option-desc">Custom hostname (required when provider=custom)</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="card card-accent-blue fade-in">
+                <h3>📂 Workspace Auto-Switching</h3>
+                <p>Automatically switch profiles based on directory:</p>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">bash</span>
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+                    </div>
+                    <code><span class="prompt">$ </span><span class="cmd">mgit</span> workspace work ~/work
+<span class="prompt">$ </span><span class="cmd">mgit</span> workspace personal ~/personal</code>
+                </div>
+
+                <div class="info-box tip">
+                    <div class="info-box-icon">💡</div>
+                    <div>When you <code>cd</code> into a workspace directory, mgit will automatically use the assigned
+                        profile.</div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="container">
+        <div class="divider"></div>
+    </div>
+
+    <!-- ===== TROUBLESHOOTING ===== -->
+    <div class="container" id="troubleshooting">
+        <section class="section fade-in">
+            <div class="section-header">
+                <div class="section-icon orange">🔧</div>
+                <h2 class="section-title">Troubleshooting</h2>
+            </div>
+
+            <div class="accordion-item open">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>🍎 macOS "externally-managed-environment" error</span>
+                    <span class="icon">+</span>
+                </div>
+                <div class="accordion-body">
+                    <div class="accordion-body-inner">
+                        <p style="margin-bottom: 12px; font-weight: 600; color: var(--text-muted);">Use the installer
+                            script (recommended) or install via pipx:</p>
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span class="code-lang">bash</span>
+                                <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+                            </div>
+                            <code><span class="comment"># Use the installer script (recommended)</span>
+<span class="prompt">$ </span><span class="cmd">curl</span> <span class="flag">-fsSL</span> https://raw.githubusercontent.com/PrajsRamteke/mgit/main/install.sh | <span class="cmd">bash</span>
+
+<span class="comment"># Or use pipx</span>
+<span class="prompt">$ </span><span class="cmd">brew</span> install pipx && <span class="cmd">pipx</span> ensurepath
+<span class="prompt">$ </span><span class="cmd">pipx</span> install git+https://github.com/PrajsRamteke/mgit.git</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>❓ <code
+                            style="background: transparent; border: none; padding: 0; font-size: inherit;">mgit: command not found</code></span>
+                    <span class="icon">+</span>
+                </div>
+                <div class="accordion-body">
+                    <div class="accordion-body-inner">
+                        <p style="margin-bottom: 12px; font-weight: 600; color: var(--text-muted);">Add mgit to your
+                            PATH:</p>
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span class="code-lang">bash</span>
+                                <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+                            </div>
+                            <code><span class="prompt">$ </span><span class="cmd">echo</span> <span class="string">'export PATH="$HOME/.local/bin:$PATH"'</span> >> ~/.zshrc
+<span class="prompt">$ </span><span class="cmd">source</span> ~/.zshrc</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>🔌 SSH Connection Failed</span>
+                    <span class="icon">+</span>
+                </div>
+                <div class="accordion-body">
+                    <div class="accordion-body-inner">
+                        <ol class="numbered-list">
+                            <li>Verify SSH key was added to GitHub/GitLab</li>
+                            <li>Check key matches: <code>mgit key &lt;name&gt;</code></li>
+                            <li>Start SSH agent: <code>eval "$(ssh-agent -s)"</code></li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>🚫 Permission Denied</span>
+                    <span class="icon">+</span>
+                </div>
+                <div class="accordion-body">
+                    <div class="accordion-body-inner">
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span class="code-lang">bash</span>
+                                <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+                            </div>
+                            <code><span class="prompt">$ </span><span class="cmd">mgit</span> test YourProfileName
+<span class="prompt">$ </span><span class="cmd">ssh-add</span> ~/.ssh/id_ed25519_YourProfileName</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>📧 Email Not Public</span>
+                    <span class="icon">+</span>
+                </div>
+                <div class="accordion-body">
+                    <div class="accordion-body-inner">
+                        <div class="info-box note">
+                            <div class="info-box-icon">ℹ️</div>
+                            <div>mgit automatically uses GitHub's noreply email if your email isn't public. You can also
+                                override it with <code>-e your@email.com</code>.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <div class="footer-logo">🔐</div>
+                <span class="footer-title">mgit</span>
+            </div>
+            <ul class="footer-links">
+                <li><a href="https://github.com/PrajsRamteke/mgit" target="_blank">GitHub</a></li>
+                <li><a href="https://github.com/PrajsRamteke/mgit/blob/main/CONTRIBUTING.md"
+                        target="_blank">Contributing</a></li>
+                <li><a href="https://github.com/PrajsRamteke/mgit/issues" target="_blank">Issues</a></li>
+            </ul>
+        </div>
+        <div class="footer-bottom">
+            <p>Made with ❤️ by <strong>PrajsRamteke</strong></p>
+            <span class="license-badge">📄 MIT License</span>
+        </div>
+    </footer>
+
+    <!-- ===== SCROLL TO TOP ===== -->
+    <button class="scroll-top" id="scrollTop" onclick="scrollToTop()">↑</button>
+
+    <script>
+        // Mobile Nav Toggle
+        function toggleNav() {
+            const nav = document.getElementById('navLinks');
+            nav.classList.toggle('open');
+        }
+
+        // Close mobile nav when clicking a link
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                document.getElementById('navLinks').classList.remove('open');
+            });
+        });
+
+        // Tabs
+        function switchTab(event, tabId) {
+            const parent = event.target.closest('.section') || event.target.closest('.card').parentElement;
+            const tabBtns = event.target.parentElement.querySelectorAll('.tab-btn');
+            const tabContents = event.target.closest('.section').querySelectorAll('.tab-content');
+
+            tabBtns.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(tc => tc.classList.remove('active'));
+
+            event.target.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        // Accordion
+        function toggleAccordion(header) {
+            const item = header.parentElement;
+            const wasOpen = item.classList.contains('open');
+
+            // Close all accordions in the same section
+            // (optional: remove these lines if you want multiple open)
+            // const siblings = item.parentElement.querySelectorAll('.accordion-item');
+            // siblings.forEach(s => s.classList.remove('open'));
+
+            if (wasOpen) {
+                item.classList.remove('open');
+            } else {
+                item.classList.add('open');
+            }
+        }
+
+        // Copy Code
+        function copyCode(btn) {
+            const codeBlock = btn.closest('.code-block');
+            const code = codeBlock.querySelector('code');
+            const text = code.innerText.replace(/^\$ /gm, '');
+
+            navigator.clipboard.writeText(text).then(() => {
+                const origText = btn.innerHTML;
+                btn.innerHTML = '✅ Copied!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.innerHTML = origText;
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        // Copy to clipboard (hero)
+        function copyToClipboard(text, btn) {
+            navigator.clipboard.writeText(text).then(() => {
+                const origText = btn.innerHTML;
+                btn.innerHTML = '✅ Copied!';
+                setTimeout(() => {
+                    btn.innerHTML = origText;
+                }, 2000);
+            });
+        }
+
+        // Scroll to top
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Scroll to top visibility
+        window.addEventListener('scroll', () => {
+            const btn = document.getElementById('scrollTop');
+            if (window.scrollY > 400) {
+                btn.classList.add('visible');
+            } else {
+                btn.classList.remove('visible');
+            }
+        });
+
+        // Fade in on scroll
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        });
+
+        document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+        // Active TOC link
+        const tocLinks = document.querySelectorAll('.toc a');
+        const sections = document.querySelectorAll('[id]');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - 120;
+                if (window.scrollY >= sectionTop) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            tocLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + current) {
+                    link.classList.add('active');
+                }
+            });
+        });
+
+        // ===== THEME SWITCHER =====
+        const themeIcons = {
+            'light': '☀️',
+            'dark': '🌙',
+            'ocean': '🌊',
+            'forest': '🌲',
+            'sunset': '🌅'
+        };
+
+        function toggleThemeDropdown() {
+            const switcher = document.getElementById('themeSwitcher');
+            switcher.classList.toggle('open');
+        }
+
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('mgit-theme', theme);
+            updateThemeUI(theme);
+            document.getElementById('themeSwitcher').classList.remove('open');
+        }
+
+        function updateThemeUI(theme) {
+            // Update current icon
+            document.getElementById('currentThemeIcon').textContent = themeIcons[theme] || '🎨';
+
+            // Update active state in dropdown
+            document.querySelectorAll('.theme-option').forEach(opt => {
+                opt.classList.remove('active');
+                if (opt.dataset.theme === theme) {
+                    opt.classList.add('active');
+                }
+            });
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const switcher = document.getElementById('themeSwitcher');
+            if (switcher && !switcher.contains(e.target)) {
+                switcher.classList.remove('open');
+            }
+        });
+
+        // Load saved theme on page load
+        (function initTheme() {
+            const savedTheme = localStorage.getItem('mgit-theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeUI(savedTheme);
+        })();
+    </script>
+</body>
+
+</html>

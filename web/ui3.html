@@ -1,0 +1,2154 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mgit — Multi-Git Manager</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Space+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #FFF8F0;
+            --bg-alt: #FFF1E0;
+            --border: #1e293b;
+            --mint: #6ee7b7;
+            --mint-dark: #34d399;
+            --pink: #fbb6ce;
+            --pink-dark: #f687b3;
+            --blue: #93c5fd;
+            --blue-dark: #60a5fa;
+            --lavender: #c4b5fd;
+            --yellow: #fde68a;
+            --yellow-dark: #fbbf24;
+            --orange: #fdba74;
+            --text: #1e293b;
+            --text-light: #475569;
+            --white: #ffffff;
+            --shadow: 5px 5px 0px var(--border);
+            --shadow-sm: 3px 3px 0px var(--border);
+            --shadow-lg: 8px 8px 0px var(--border);
+            --shadow-mint: 5px 5px 0px #059669;
+            --shadow-pink: 5px 5px 0px #db2777;
+            --shadow-blue: 5px 5px 0px #2563eb;
+            --radius: 18px;
+            --radius-lg: 24px;
+            --radius-pill: 50px;
+            --border-w: 3px;
+            --border-w-thick: 4px;
+        }
+
+        /* ===== THEME VARIANTS ===== */
+        [data-theme="dark"] {
+            --bg: #1a1a2e;
+            --bg-alt: #16213e;
+            --white: #0f0f1a;
+            --border: #e2e8f0;
+            --text: #e2e8f0;
+            --text-light: #a0aec0;
+        }
+
+        [data-theme="ocean"] {
+            --bg: #e0f7fa;
+            --bg-alt: #b2ebf2;
+            --mint: #00bcd4;
+            --mint-dark: #0097a7;
+            --blue: #4dd0e1;
+            --border: #006064;
+            --text: #004d40;
+            --text-light: #00695c;
+        }
+
+        [data-theme="forest"] {
+            --bg: #e8f5e9;
+            --bg-alt: #c8e6c9;
+            --mint: #66bb6a;
+            --mint-dark: #43a047;
+            --yellow: #c5e1a5;
+            --border: #1b5e20;
+            --text: #1b5e20;
+            --text-light: #388e3c;
+        }
+
+        [data-theme="sunset"] {
+            --bg: #fff3e0;
+            --bg-alt: #ffe0b2;
+            --mint: #ffb74d;
+            --mint-dark: #ffa726;
+            --yellow: #ffe082;
+            --orange: #ffab40;
+            --border: #bf360c;
+            --text: #bf360c;
+            --text-light: #e65100;
+        }
+
+        /* ===== THEME SWITCHER ===== */
+        .theme-switcher {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .theme-toggle-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 18px;
+            background: var(--mint);
+            border: var(--border-w) solid var(--border);
+            border-radius: var(--radius-pill);
+            box-shadow: var(--shadow-sm);
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .theme-toggle-btn:hover {
+            transform: translate(1px, 1px);
+            box-shadow: 2px 2px 0px var(--border);
+        }
+
+        .theme-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
+            background: var(--white);
+            border: var(--border-w) solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            min-width: 150px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.2s ease;
+            z-index: 1001;
+        }
+
+        .theme-switcher.open .theme-dropdown {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .theme-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: var(--text);
+            transition: background 0.15s;
+            border-bottom: 1px solid var(--bg-alt);
+        }
+
+        .theme-option:last-child {
+            border-bottom: none;
+        }
+
+        .theme-option:hover {
+            background: var(--bg-alt);
+        }
+
+        .theme-option.active {
+            background: var(--mint);
+        }
+
+        .theme-icon {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+        }
+
+        .theme-icon.light {
+            background: linear-gradient(135deg, #FFF8F0, #FFF1E0);
+        }
+
+        .theme-icon.dark {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+        }
+
+        .theme-icon.ocean {
+            background: linear-gradient(135deg, #00bcd4, #4dd0e1);
+        }
+
+        .theme-icon.forest {
+            background: linear-gradient(135deg, #66bb6a, #a5d6a7);
+        }
+
+        .theme-icon.sunset {
+            background: linear-gradient(135deg, #ffb74d, #ffcc80);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        /* Decorative floating shapes */
+        .floating-shapes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .shape {
+            position: absolute;
+            border: var(--border-w) solid var(--border);
+            opacity: 0.12;
+        }
+
+        .shape-1 {
+            width: 80px;
+            height: 80px;
+            background: var(--pink);
+            border-radius: 50%;
+            top: 10%;
+            left: 5%;
+            animation: floatA 20s ease-in-out infinite;
+        }
+
+        .shape-2 {
+            width: 60px;
+            height: 60px;
+            background: var(--blue);
+            border-radius: 12px;
+            top: 30%;
+            right: 8%;
+            animation: floatB 25s ease-in-out infinite;
+            transform: rotate(15deg);
+        }
+
+        .shape-3 {
+            width: 100px;
+            height: 100px;
+            background: var(--mint);
+            border-radius: 50%;
+            bottom: 20%;
+            left: 3%;
+            animation: floatA 30s ease-in-out infinite reverse;
+        }
+
+        .shape-4 {
+            width: 50px;
+            height: 50px;
+            background: var(--yellow);
+            border-radius: 10px;
+            top: 60%;
+            right: 4%;
+            animation: floatB 18s ease-in-out infinite;
+            transform: rotate(45deg);
+        }
+
+        .shape-5 {
+            width: 70px;
+            height: 70px;
+            background: var(--lavender);
+            border-radius: 50%;
+            top: 80%;
+            left: 50%;
+            animation: floatA 22s ease-in-out infinite;
+        }
+
+        @keyframes floatA {
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            25% {
+                transform: translateY(-30px) rotate(5deg);
+            }
+
+            50% {
+                transform: translateY(15px) rotate(-3deg);
+            }
+
+            75% {
+                transform: translateY(-20px) rotate(4deg);
+            }
+        }
+
+        @keyframes floatB {
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(15deg);
+            }
+
+            33% {
+                transform: translateY(-25px) rotate(25deg);
+            }
+
+            66% {
+                transform: translateY(20px) rotate(5deg);
+            }
+        }
+
+        /* Main container */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Navigation */
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 42px;
+            height: 42px;
+            background: var(--mint);
+            border: var(--border-w) solid var(--border);
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+            font-size: 1.2rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .nav-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 18px;
+            background: var(--white);
+            border: var(--border-w) solid var(--border);
+            border-radius: var(--radius-pill);
+            box-shadow: var(--shadow-sm);
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: var(--text);
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .nav-link:hover {
+            transform: translate(1px, 1px);
+            box-shadow: 2px 2px 0px var(--border);
+            background: var(--bg-alt);
+        }
+
+        .nav-link:active {
+            transform: translate(3px, 3px);
+            box-shadow: 0px 0px 0px var(--border);
+        }
+
+        /* Hero section */
+        .hero {
+            background: var(--white);
+            border: var(--border-w-thick) solid var(--border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            padding: 48px 40px;
+            margin-bottom: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -30px;
+            right: -30px;
+            width: 120px;
+            height: 120px;
+            background: var(--pink);
+            border-radius: 50%;
+            border: var(--border-w) solid var(--border);
+            opacity: 0.4;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: -20px;
+            width: 80px;
+            height: 80px;
+            background: var(--blue);
+            border-radius: 14px;
+            border: var(--border-w) solid var(--border);
+            opacity: 0.3;
+            transform: rotate(20deg);
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 16px;
+            background: var(--yellow);
+            border: var(--border-w) solid var(--border);
+            border-radius: var(--radius-pill);
+            box-shadow: var(--shadow-sm);
+            font-weight: 800;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero h1 {
+            font-size: 3.2rem;
+            font-weight: 900;
+            line-height: 1.15;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero h1 .accent {
+            color: var(--mint-dark);
+            position: relative;
+        }
+
+        .hero h1 .accent::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background: var(--mint);
+            opacity: 0.5;
+            z-index: -1;
+            border-radius: 4px;
+        }
+
+        .hero-subtitle {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--text-light);
+            max-width: 600px;
+            margin: 0 auto 28px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 800;
+            font-size: 1rem;
+            border: var(--border-w-thick) solid var(--border);
+            border-radius: var(--radius-pill);
+            cursor: pointer;
+            transition: all 0.12s ease;
+            text-decoration: none;
+            color: var(--text);
+        }
+
+        .btn-primary {
+            background: var(--mint);
+            box-shadow: var(--shadow-mint);
+        }
+
+        .btn-primary:hover {
+            background: var(--mint-dark);
+            transform: translate(2px, 2px);
+            box-shadow: 3px 3px 0px #059669;
+        }
+
+        .btn-primary:active {
+            transform: translate(5px, 5px);
+            box-shadow: 0px 0px 0px #059669;
+        }
+
+        .btn-secondary {
+            background: var(--white);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-alt);
+            transform: translate(2px, 2px);
+            box-shadow: 3px 3px 0px var(--border);
+        }
+
+        .btn-secondary:active {
+            transform: translate(5px, 5px);
+            box-shadow: 0px 0px 0px var(--border);
+        }
+
+        .btn-pink {
+            background: var(--pink);
+            box-shadow: var(--shadow-pink);
+        }
+
+        .btn-pink:hover {
+            background: var(--pink-dark);
+            transform: translate(2px, 2px);
+            box-shadow: 3px 3px 0px #db2777;
+        }
+
+        .btn-sm {
+            padding: 8px 18px;
+            font-size: 0.85rem;
+            border-width: var(--border-w);
+        }
+
+        /* Section cards */
+        .section-card {
+            background: var(--white);
+            border: var(--border-w-thick) solid var(--border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            padding: 36px 32px;
+            margin-bottom: 32px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .section-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border: var(--border-w) solid var(--border);
+            border-radius: 14px;
+            box-shadow: var(--shadow-sm);
+            font-size: 1.4rem;
+            flex-shrink: 0;
+        }
+
+        .section-icon.mint {
+            background: var(--mint);
+        }
+
+        .section-icon.pink {
+            background: var(--pink);
+        }
+
+        .section-icon.blue {
+            background: var(--blue);
+        }
+
+        .section-icon.yellow {
+            background: var(--yellow);
+        }
+
+        .section-icon.lavender {
+            background: var(--lavender);
+        }
+
+        .section-icon.orange {
+            background: var(--orange);
+        }
+
+        .section-title {
+            font-size: 1.7rem;
+            font-weight: 900;
+        }
+
+        .section-desc {
+            color: var(--text-light);
+            font-weight: 600;
+            margin-bottom: 20px;
+            font-size: 1.02rem;
+        }
+
+        /* Code blocks */
+        .code-block-wrapper {
+            position: relative;
+            margin: 16px 0;
+        }
+
+        .code-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 14px;
+            background: var(--border);
+            color: var(--white);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.72rem;
+            font-weight: 700;
+            border-radius: 10px 10px 0 0;
+            border: var(--border-w) solid var(--border);
+            border-bottom: none;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .code-block {
+            background: var(--border);
+            color: #e2e8f0;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85rem;
+            padding: 20px 22px;
+            border-radius: 0 var(--radius) var(--radius) var(--radius);
+            border: var(--border-w) solid var(--border);
+            overflow-x: auto;
+            line-height: 1.8;
+            position: relative;
+        }
+
+        .code-block.no-label {
+            border-radius: var(--radius);
+        }
+
+        .code-block code {
+            font-family: 'Space Mono', monospace;
+        }
+
+        .code-block .comment {
+            color: #94a3b8;
+        }
+
+        .code-block .command {
+            color: var(--mint);
+        }
+
+        .code-block .flag {
+            color: var(--yellow);
+        }
+
+        .code-block .string {
+            color: var(--pink);
+        }
+
+        .code-block .url {
+            color: var(--blue);
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 6px 14px;
+            background: #334155;
+            color: #e2e8f0;
+            border: 2px solid #475569;
+            border-radius: var(--radius-pill);
+            font-family: 'Nunito', sans-serif;
+            font-weight: 700;
+            font-size: 0.72rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            z-index: 2;
+        }
+
+        .copy-btn:hover {
+            background: #475569;
+            transform: scale(1.05);
+        }
+
+        .copy-btn.copied {
+            background: #059669;
+            border-color: #059669;
+        }
+
+        /* Output blocks */
+        .output-block {
+            background: #f1f5f9;
+            border: var(--border-w) dashed var(--border);
+            border-radius: var(--radius);
+            padding: 18px 22px;
+            margin: 14px 0;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.82rem;
+            line-height: 1.8;
+            color: var(--text);
+        }
+
+        .output-block .success {
+            color: #059669;
+        }
+
+        .output-block .info {
+            color: #2563eb;
+        }
+
+        /* Steps */
+        .step {
+            position: relative;
+            padding-left: 0;
+            margin-bottom: 28px;
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 38px;
+            background: var(--mint);
+            border: var(--border-w) solid var(--border);
+            border-radius: 50%;
+            box-shadow: var(--shadow-sm);
+            font-weight: 900;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .step h3 {
+            font-size: 1.2rem;
+            font-weight: 800;
+        }
+
+        .step p {
+            color: var(--text-light);
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        /* Callout boxes */
+        .callout {
+            padding: 18px 22px;
+            border: var(--border-w) solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            margin: 16px 0;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .callout-icon {
+            font-size: 1.3rem;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .callout-tip {
+            background: #ecfdf5;
+        }
+
+        .callout-warning {
+            background: #fffbeb;
+        }
+
+        .callout-info {
+            background: #eff6ff;
+        }
+
+        .callout-content {
+            font-weight: 600;
+            font-size: 0.92rem;
+        }
+
+        .callout-content strong {
+            font-weight: 800;
+        }
+
+        /* Table */
+        .table-wrapper {
+            overflow-x: auto;
+            margin: 16px 0;
+            border: var(--border-w-thick) solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        thead {
+            background: var(--border);
+            color: var(--white);
+        }
+
+        th {
+            padding: 14px 18px;
+            font-weight: 800;
+            text-align: left;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        td {
+            padding: 12px 18px;
+            border-top: 2px solid var(--border);
+            font-weight: 600;
+        }
+
+        tbody tr {
+            background: var(--white);
+            transition: background 0.1s;
+        }
+
+        tbody tr:nth-child(even) {
+            background: var(--bg);
+        }
+
+        tbody tr:hover {
+            background: #ecfdf5;
+        }
+
+        td code {
+            background: #f1f5f9;
+            padding: 3px 8px;
+            border-radius: 8px;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+            border: 2px solid #e2e8f0;
+            font-weight: 700;
+        }
+
+        /* Tab system */
+        .tabs {
+            margin: 16px 0;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 6px;
+            margin-bottom: -3px;
+            position: relative;
+            z-index: 2;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            background: var(--bg);
+            border: var(--border-w) solid var(--border);
+            border-bottom: none;
+            border-radius: 14px 14px 0 0;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 800;
+            font-size: 0.88rem;
+            cursor: pointer;
+            color: var(--text-light);
+            transition: all 0.12s;
+        }
+
+        .tab-btn.active {
+            background: var(--white);
+            color: var(--text);
+            position: relative;
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: var(--bg-alt);
+        }
+
+        .tab-content {
+            border: var(--border-w) solid var(--border);
+            border-radius: 0 var(--radius) var(--radius) var(--radius);
+            background: var(--white);
+            padding: 24px;
+            box-shadow: var(--shadow);
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        /* Link list for GitHub/GitLab instructions */
+        .platform-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            margin: 16px 0;
+        }
+
+        .platform-card {
+            padding: 18px;
+            border: var(--border-w) solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.12s;
+        }
+
+        .platform-card:hover {
+            transform: translate(1px, 1px);
+            box-shadow: 2px 2px 0px var(--border);
+        }
+
+        .platform-card.github {
+            background: #f6f8fa;
+        }
+
+        .platform-card.gitlab {
+            background: #fef3f2;
+        }
+
+        .platform-card.bitbucket {
+            background: #eff6ff;
+        }
+
+        .platform-card-icon {
+            font-size: 1.5rem;
+        }
+
+        .platform-card-content small {
+            display: block;
+            font-weight: 600;
+            color: var(--text-light);
+            font-size: 0.78rem;
+        }
+
+        /* Options grid */
+        .options-grid {
+            display: grid;
+            gap: 10px;
+            margin: 16px 0;
+        }
+
+        .option-row {
+            display: grid;
+            grid-template-columns: 160px 1fr;
+            gap: 12px;
+            padding: 12px 16px;
+            background: var(--bg);
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            align-items: center;
+        }
+
+        .option-flags {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .option-desc {
+            font-weight: 600;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Troubleshooting accordion */
+        .accordion-item {
+            border: var(--border-w) solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 10px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .accordion-trigger {
+            width: 100%;
+            padding: 16px 22px;
+            background: var(--white);
+            border: none;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 800;
+            font-size: 1rem;
+            color: var(--text);
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            transition: background 0.12s;
+        }
+
+        .accordion-trigger:hover {
+            background: var(--bg-alt);
+        }
+
+        .accordion-trigger .chevron {
+            transition: transform 0.2s;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .accordion-item.open .accordion-trigger .chevron {
+            transform: rotate(180deg);
+        }
+
+        .accordion-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .accordion-item.open .accordion-body {
+            max-height: 1000px;
+        }
+
+        .accordion-content {
+            padding: 0 22px 20px;
+        }
+
+        /* Divider */
+        .divider {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin: 40px 0;
+            opacity: 0.1;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            margin-top: 20px;
+        }
+
+        .footer-card {
+            background: var(--white);
+            border: var(--border-w-thick) solid var(--border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            padding: 36px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .footer p {
+            color: var(--text-light);
+            font-weight: 600;
+            font-size: 0.92rem;
+        }
+
+        /* Inline code */
+        p code,
+        li code,
+        .step p code,
+        .callout-content code,
+        .accordion-content code {
+            background: #f1f5f9;
+            padding: 2px 8px;
+            border-radius: 8px;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.82em;
+            border: 2px solid #e2e8f0;
+            font-weight: 700;
+        }
+
+        /* Lists */
+        .content-list {
+            list-style: none;
+            padding: 0;
+            margin: 12px 0;
+        }
+
+        .content-list li {
+            position: relative;
+            padding: 6px 0 6px 28px;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .content-list li::before {
+            content: '→';
+            position: absolute;
+            left: 4px;
+            color: var(--mint-dark);
+            font-weight: 900;
+        }
+
+        /* Ordered steps list */
+        ol.steps-list {
+            list-style: none;
+            padding: 0;
+            counter-reset: steps;
+        }
+
+        ol.steps-list li {
+            counter-increment: steps;
+            padding: 8px 0 8px 36px;
+            position: relative;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        ol.steps-list li::before {
+            content: counter(steps);
+            position: absolute;
+            left: 0;
+            width: 24px;
+            height: 24px;
+            background: var(--mint);
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 0.75rem;
+            top: 9px;
+        }
+
+        /* Scroll to top */
+        .scroll-top {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 50px;
+            height: 50px;
+            background: var(--mint);
+            border: var(--border-w-thick) solid var(--border);
+            border-radius: 50%;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            transition: all 0.15s;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(20px);
+        }
+
+        .scroll-top.visible {
+            opacity: 1;
+            pointer-events: all;
+            transform: translateY(0);
+        }
+
+        .scroll-top:hover {
+            transform: translate(2px, 2px) translateY(-2px);
+            box-shadow: 3px 3px 0px var(--border);
+            background: var(--mint-dark);
+        }
+
+        .scroll-top:active {
+            transform: translate(4px, 4px);
+            box-shadow: 1px 1px 0px var(--border);
+        }
+
+        /* Link styling */
+        a {
+            color: #2563eb;
+            font-weight: 700;
+            text-decoration-thickness: 2px;
+            text-underline-offset: 3px;
+        }
+
+        a:hover {
+            color: #1d4ed8;
+        }
+
+        /* TOC */
+        .toc {
+            margin: 16px 0;
+        }
+
+        .toc-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .toc-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            background: var(--bg);
+            border: var(--border-w) solid var(--border);
+            border-radius: 14px;
+            box-shadow: var(--shadow-sm);
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 700;
+            font-size: 0.9rem;
+            transition: all 0.12s;
+        }
+
+        .toc-item:hover {
+            transform: translate(1px, 1px);
+            box-shadow: 2px 2px 0px var(--border);
+            background: var(--white);
+        }
+
+        .toc-emoji {
+            font-size: 1.2rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 12px;
+            }
+
+            .hero {
+                padding: 32px 20px;
+            }
+
+            .hero h1 {
+                font-size: 2.2rem;
+            }
+
+            .section-card {
+                padding: 24px 18px;
+            }
+
+            .code-block {
+                font-size: 0.78rem;
+                padding: 16px;
+            }
+
+            .top-nav {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .option-row {
+                grid-template-columns: 1fr;
+                gap: 4px;
+            }
+
+            table {
+                font-size: 0.78rem;
+            }
+
+            th,
+            td {
+                padding: 10px 12px;
+            }
+
+            .platform-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 1.8rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1rem;
+            }
+
+            .btn {
+                padding: 12px 20px;
+                font-size: 0.9rem;
+            }
+
+            .hero-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .toc-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Animations */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Badge pill */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: var(--radius-pill);
+            font-size: 0.72rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            border: 2px solid var(--border);
+        }
+
+        .badge-mint {
+            background: var(--mint);
+        }
+
+        .badge-pink {
+            background: var(--pink);
+        }
+
+        .badge-blue {
+            background: var(--blue);
+        }
+
+        .badge-yellow {
+            background: var(--yellow);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Floating decorative shapes -->
+    <div class="floating-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+        <div class="shape shape-4"></div>
+        <div class="shape shape-5"></div>
+    </div>
+
+    <div class="container">
+        <!-- Top Navigation -->
+        <nav class="top-nav">
+            <div class="logo">
+                <span class="logo-icon">🔐</span>
+                mgit
+            </div>
+            <div class="nav-links">
+                <a href="#installation" class="nav-link">📦 Install</a>
+                <a href="#quick-start" class="nav-link">🚀 Start</a>
+                <a href="#commands" class="nav-link">📚 Docs</a>
+                <a href="https://github.com/PrajsRamteke/mgit" class="nav-link" target="_blank">⭐ GitHub</a>
+            </div>
+            <!-- Theme Switcher -->
+            <div class="theme-switcher" id="themeSwitcher">
+                <button class="theme-toggle-btn" onclick="toggleThemeDropdown()">
+                    <span id="currentThemeIcon">🎨</span> Theme
+                </button>
+                <div class="theme-dropdown">
+                    <div class="theme-option" data-theme="light" onclick="setTheme('light')">
+                        <span class="theme-icon light">☀️</span> Light
+                    </div>
+                    <div class="theme-option" data-theme="dark" onclick="setTheme('dark')">
+                        <span class="theme-icon dark">🌙</span> Dark
+                    </div>
+                    <div class="theme-option" data-theme="ocean" onclick="setTheme('ocean')">
+                        <span class="theme-icon ocean">🌊</span> Ocean
+                    </div>
+                    <div class="theme-option" data-theme="forest" onclick="setTheme('forest')">
+                        <span class="theme-icon forest">🌲</span> Forest
+                    </div>
+                    <div class="theme-option" data-theme="sunset" onclick="setTheme('sunset')">
+                        <span class="theme-icon sunset">🌅</span> Sunset
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <section class="hero fade-in">
+            <div class="hero-badge">✨ Open Source CLI Tool</div>
+            <h1>Multi-Git <span class="accent">Manager</span></h1>
+            <p class="hero-subtitle">Manage multiple Git accounts on a single machine effortlessly. Generate SSH keys,
+                configure aliases, and switch identities with ease.</p>
+            <div class="hero-actions">
+                <a href="#installation" class="btn btn-primary">📦 Install Now</a>
+                <a href="#quick-start" class="btn btn-secondary">🚀 Quick Start</a>
+                <a href="https://github.com/PrajsRamteke/mgit" class="btn btn-pink" target="_blank">⭐ Star on GitHub</a>
+            </div>
+        </section>
+
+        <!-- Table of Contents -->
+        <div class="section-card fade-in">
+            <div class="section-header">
+                <div class="section-icon lavender">📑</div>
+                <h2 class="section-title">Contents</h2>
+            </div>
+            <div class="toc">
+                <div class="toc-grid">
+                    <a href="#installation" class="toc-item">
+                        <span class="toc-emoji">📦</span> Installation
+                    </a>
+                    <a href="#quick-start" class="toc-item">
+                        <span class="toc-emoji">🚀</span> Quick Start
+                    </a>
+                    <a href="#commands" class="toc-item">
+                        <span class="toc-emoji">📚</span> Commands
+                    </a>
+                    <a href="#examples" class="toc-item">
+                        <span class="toc-emoji">🎯</span> Examples
+                    </a>
+                    <a href="#advanced" class="toc-item">
+                        <span class="toc-emoji">⚙️</span> Advanced
+                    </a>
+                    <a href="#troubleshooting" class="toc-item">
+                        <span class="toc-emoji">🔧</span> Troubleshooting
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Installation Section -->
+        <section id="installation" class="section-card fade-in">
+            <div class="section-header">
+                <div class="section-icon mint">📦</div>
+                <h2 class="section-title">Installation</h2>
+            </div>
+            <p class="section-desc">Get mgit up and running in under a minute. Choose your preferred method below.</p>
+
+            <div class="tabs">
+                <div class="tab-buttons">
+                    <button class="tab-btn active" data-tab="install-quick">⚡ Quick Install</button>
+                    <button class="tab-btn" data-tab="install-pipx">🧪 pipx</button>
+                </div>
+                <div class="tab-content">
+                    <div class="tab-panel active" id="install-quick">
+                        <p style="font-weight:700; margin-bottom: 12px;">Recommended — copy each line and paste in
+                            terminal:</p>
+                        <div class="code-block-wrapper">
+                            <span class="code-label">Terminal</span>
+                            <div class="code-block">
+                                <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+                                <code><span class="command">curl</span> <span class="flag">-fsSL</span> <span class="url">https://raw.githubusercontent.com/PrajsRamteke/mgit/main/install.sh</span> | <span class="command">bash</span>
+<span class="command">echo</span> <span class="string">'export PATH="$HOME/.local/bin:$PATH"'</span> >> ~/.zshrc
+<span class="command">source</span> ~/.zshrc
+<span class="command">mgit</span> <span class="flag">--version</span>
+<span class="command">mgit</span> <span class="flag">--help</span></code>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-panel" id="install-pipx">
+                        <p style="font-weight:700; margin-bottom: 12px;">Install using pipx for isolated environments:
+                        </p>
+                        <div class="code-block-wrapper">
+                            <span class="code-label">Terminal</span>
+                            <div class="code-block">
+                                <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+                                <code><span class="comment"># Install pipx (if needed)</span>
+<span class="command">brew</span> install pipx
+<span class="command">pipx</span> ensurepath
+
+<span class="comment"># Install mgit</span>
+<span class="command">pipx</span> install <span class="url">git+https://github.com/PrajsRamteke/mgit.git</span></code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="callout callout-tip">
+                <span class="callout-icon">✅</span>
+                <div class="callout-content">
+                    <strong>Verify installation:</strong> Run <code>mgit --version</code> and <code>mgit --help</code>
+                    to confirm everything works.
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Start Section -->
+        <section id="quick-start" class="section-card fade-in">
+            <div class="section-header">
+                <div class="section-icon pink">🚀</div>
+                <h2 class="section-title">Quick Start</h2>
+            </div>
+            <p class="section-desc">Get up and running with your first Git profile in 5 simple steps.</p>
+
+            <!-- Step 1 -->
+            <div class="step">
+                <div class="step-header">
+                    <span class="step-number">1</span>
+                    <h3>Add Your Account</h3>
+                </div>
+                <p>Just provide your GitHub/GitLab username — mgit automatically fetches your name and email!</p>
+                <div class="code-block-wrapper">
+                    <span class="code-label">Terminal</span>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+                        <code><span class="comment"># Add GitHub account (set as default)</span>
+<span class="command">mgit</span> add YourGitHubUsername <span class="flag">-d</span>
+
+<span class="comment"># Add with custom profile name</span>
+<span class="command">mgit</span> add YourGitHubUsername <span class="flag">-n</span> work
+
+<span class="comment"># Add GitLab account</span>
+<span class="command">mgit</span> add YourGitLabUsername <span class="flag">-p</span> gitlab
+
+<span class="comment"># Add Bitbucket account</span>
+<span class="command">mgit</span> add YourBitbucketUsername <span class="flag">-p</span> bitbucket</code>
+                    </div>
+                </div>
+                <div class="output-block">
+                    <span class="info">ℹ</span> Fetching user details from github...<br>
+                    &nbsp;&nbsp;Name: Your Name<br>
+                    &nbsp;&nbsp;Email: your@email.com<br>
+                    <span class="success">✓</span> Profile 'YourGitHubUsername' created successfully!
+                </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="step">
+                <div class="step-header">
+                    <span class="step-number">2</span>
+                    <h3>Get Your SSH Public Key</h3>
+                </div>
+                <p>Copy your public key to add it to your Git provider.</p>
+                <div class="code-block-wrapper">
+                    <span class="code-label">Terminal</span>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+                        <code><span class="command">mgit</span> key YourProfileName</code>
+                    </div>
+                </div>
+                <div class="output-block">
+                    Public key for 'YourProfileName':<br><br>
+                    ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIG... your@email.com
+                </div>
+                <div class="callout callout-info">
+                    <span class="callout-icon">📋</span>
+                    <div class="callout-content">
+                        <strong>Copy the entire key</strong> — you'll need it in the next step!
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="step">
+                <div class="step-header">
+                    <span class="step-number">3</span>
+                    <h3>Add SSH Key to Your Provider</h3>
+                </div>
+                <p>Add the copied SSH key to your Git hosting provider:</p>
+                <div class="platform-cards">
+                    <a href="https://github.com/settings/keys" target="_blank" class="platform-card github">
+                        <span class="platform-card-icon">🐙</span>
+                        <div class="platform-card-content">
+                            <strong>GitHub</strong>
+                            <small>Settings → SSH Keys</small>
+                        </div>
+                    </a>
+                    <a href="https://gitlab.com/-/user_settings/ssh_keys" target="_blank" class="platform-card gitlab">
+                        <span class="platform-card-icon">🦊</span>
+                        <div class="platform-card-content">
+                            <strong>GitLab</strong>
+                            <small>User Settings → SSH Keys</small>
+                        </div>
+                    </a>
+                    <a href="#" class="platform-card bitbucket">
+                        <span class="platform-card-icon">🪣</span>
+                        <div class="platform-card-content">
+                            <strong>Bitbucket</strong>
+                            <small>Personal Settings → SSH Keys</small>
+                        </div>
+                    </a>
+                </div>
+                <div class="callout callout-tip">
+                    <span class="callout-icon">💡</span>
+                    <div class="callout-content">
+                        On GitHub: Click <strong>"New SSH key"</strong>, paste your key, and save.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="step">
+                <div class="step-header">
+                    <span class="step-number">4</span>
+                    <h3>Test Connection</h3>
+                </div>
+                <p>Verify everything works:</p>
+                <div class="code-block-wrapper">
+                    <span class="code-label">Terminal</span>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+                        <code><span class="command">mgit</span> test YourProfileName</code>
+                    </div>
+                </div>
+                <div class="output-block">
+                    <span class="success">✓</span> SSH connection successful for 'YourProfileName'<br>
+                    &nbsp;&nbsp;Hi YourProfileName! You've successfully authenticated.
+                </div>
+            </div>
+
+            <!-- Step 5 -->
+            <div class="step">
+                <div class="step-header">
+                    <span class="step-number">5</span>
+                    <h3>Start Using</h3>
+                </div>
+                <p>Switch profiles and clone repositories:</p>
+                <div class="code-block-wrapper">
+                    <span class="code-label">Terminal</span>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+                        <code><span class="comment"># Switch to a profile (global)</span>
+<span class="command">mgit</span> use YourProfileName
+
+<span class="comment"># Switch for current repository only</span>
+<span class="command">mgit</span> use YourProfileName <span class="flag">-l</span>
+
+<span class="comment"># Clone with specific profile</span>
+<span class="command">mgit</span> clone YourProfileName <span class="url">git@github.com:username/repo.git</span></code>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Commands Section -->
+        <section id="commands" class="section-card fade-in">
+            <div class="section-header">
+                <div class="section-icon blue">📚</div>
+                <h2 class="section-title">Commands</h2>
+            </div>
+            <p class="section-desc">Complete reference of all available mgit commands.</p>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Command</th>
+                            <th>Alias</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>mgit add &lt;username&gt;</code></td>
+                            <td>—</td>
+                            <td>Add a new account profile</td>
+                        </tr>
+                        <tr>
+                            <td><code>mgit remove &lt;name&gt;</code></td>
+                            <td><code>mgit rm</code></td>
+                            <td>Remove a profile</td>
+                        </tr>
+                        <tr>
+                            <td><code>mgit list</code></td>
+                            <td><code>mgit ls</code></td>
+                            <td>List all profiles</td>
+                        </tr>
+                        <tr>
+                            <td><code>mgit switch &lt;name&gt;</code></td>
+                            <td><code>mgit use</code></td>
+                            <td>Switch to a profile</td>
+                        </tr>
+                        <tr>
+                            <td><code>mgit show-key &lt;name&gt;</code></td>
+                            <td><code>mgit key</code></td>
+                            <td>Show SSH public key</td>
+                        </tr>
+                        <tr>
+                            <td><code>mgit test &lt;name&gt;</code></td>
+                            <td>—</td>
+                            <td>Test SSH connection</td>
+                        </tr>
+                        <tr>
+                            <td><code>mgit current</code></td>
+                            <td>—</td>
+                            <td>Show current config</td>
+                        </tr>
+                        <tr>
+                            <td><code>mgit clone &lt;name&gt; &lt;url&gt;</code></td>
+                            <td>—</td>
+                            <td>Clone with specific profile</td>
+                        </tr>
+                        <tr>
+                            <td><code>mgit info &lt;username&gt;</code></td>
+                            <td>—</td>
+                            <td>Preview user info without adding</td>
+                        </tr>
+                        <tr>
+                            <td><code>mgit workspace &lt;name&gt; &lt;dir&gt;</code></td>
+                            <td>—</td>
+                            <td>Set workspace for auto-switching</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Examples Section -->
+        <section id="examples" class="section-card fade-in">
+            <div class="section-header">
+                <div class="section-icon yellow">🎯</div>
+                <h2 class="section-title">Examples</h2>
+            </div>
+            <p class="section-desc">Common usage patterns to get you started quickly.</p>
+
+            <h3 style="font-weight:800; margin-bottom:12px; font-size:1.1rem;">Add Multiple Accounts</h3>
+            <div class="code-block-wrapper">
+                <span class="code-label">Terminal</span>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+                    <code><span class="comment"># Personal GitHub (default)</span>
+<span class="command">mgit</span> add johndoe <span class="flag">-d</span>
+
+<span class="comment"># Work GitHub</span>
+<span class="command">mgit</span> add john-doe-company <span class="flag">-n</span> work
+
+<span class="comment"># GitLab account</span>
+<span class="command">mgit</span> add jdoe <span class="flag">-p</span> gitlab <span class="flag">-n</span> freelance</code>
+                </div>
+            </div>
+
+            <h3 style="font-weight:800; margin: 20px 0 12px; font-size:1.1rem;">View All Accounts</h3>
+            <div class="code-block-wrapper">
+                <span class="code-label">Terminal</span>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+                    <code><span class="command">mgit</span> ls</code>
+                </div>
+            </div>
+
+            <h3 style="font-weight:800; margin: 20px 0 12px; font-size:1.1rem;">Check Current Configuration</h3>
+            <div class="code-block-wrapper">
+                <span class="code-label">Terminal</span>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+                    <code><span class="command">mgit</span> current</code>
+                </div>
+            </div>
+
+            <h3 style="font-weight:800; margin: 20px 0 12px; font-size:1.1rem;">Preview User Info</h3>
+            <div class="code-block-wrapper">
+                <span class="code-label">Terminal</span>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+                    <code><span class="command">mgit</span> info SomeUsername
+<span class="command">mgit</span> info SomeUser <span class="flag">-p</span> gitlab</code>
+                </div>
+            </div>
+        </section>
+
+        <!-- Advanced Options -->
+        <section id="advanced" class="section-card fade-in">
+            <div class="section-header">
+                <div class="section-icon orange">⚙️</div>
+                <h2 class="section-title">Advanced Options</h2>
+            </div>
+            <p class="section-desc">Fine-tune your profiles with these powerful options.</p>
+
+            <h3 style="font-weight:800; margin-bottom:12px; font-size:1.1rem;">Add Command Options</h3>
+            <div class="code-block-wrapper">
+                <span class="code-label">Usage</span>
+                <div class="code-block">
+                    <code><span class="command">mgit</span> add &lt;username&gt; [OPTIONS]</code>
+                </div>
+            </div>
+
+            <div class="options-grid" style="margin-top: 16px;">
+                <div class="option-row">
+                    <span class="option-flags"><code>-p, --provider</code></span>
+                    <span class="option-desc">Git provider: github, gitlab, bitbucket, custom <span
+                            class="badge badge-mint">default: github</span></span>
+                </div>
+                <div class="option-row">
+                    <span class="option-flags"><code>-n, --name</code></span>
+                    <span class="option-desc">Profile name <span class="badge badge-blue">default:
+                            username</span></span>
+                </div>
+                <div class="option-row">
+                    <span class="option-flags"><code>-e, --email</code></span>
+                    <span class="option-desc">Override email (auto-fetched if not provided)</span>
+                </div>
+                <div class="option-row">
+                    <span class="option-flags"><code>-d, --default</code></span>
+                    <span class="option-desc">Set as default profile</span>
+                </div>
+                <div class="option-row">
+                    <span class="option-flags"><code>-w, --workspace</code></span>
+                    <span class="option-desc">Workspace directory for auto-switching</span>
+                </div>
+                <div class="option-row">
+                    <span class="option-flags"><code>-k, --key-type</code></span>
+                    <span class="option-desc">SSH key type: ed25519, rsa <span class="badge badge-yellow">default:
+                            ed25519</span></span>
+                </div>
+                <div class="option-row">
+                    <span class="option-flags"><code>--passphrase</code></span>
+                    <span class="option-desc">SSH key passphrase</span>
+                </div>
+                <div class="option-row">
+                    <span class="option-flags"><code>--signing-key</code></span>
+                    <span class="option-desc">GPG signing key ID</span>
+                </div>
+                <div class="option-row">
+                    <span class="option-flags"><code>--custom-host</code></span>
+                    <span class="option-desc">Custom hostname <span class="badge badge-pink">required for custom
+                            provider</span></span>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <h3 style="font-weight:800; margin-bottom:12px; font-size:1.1rem;">🗂️ Workspace Auto-Switching</h3>
+            <p style="font-weight:600; color: var(--text-light); margin-bottom: 12px;">Automatically switch profiles
+                based on your working directory:</p>
+            <div class="code-block-wrapper">
+                <span class="code-label">Terminal</span>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+                    <code><span class="command">mgit</span> workspace work ~/work
+<span class="command">mgit</span> workspace personal ~/personal</code>
+                </div>
+            </div>
+        </section>
+
+        <!-- Troubleshooting Section -->
+        <section id="troubleshooting" class="section-card fade-in">
+            <div class="section-header">
+                <div class="section-icon pink">🔧</div>
+                <h2 class="section-title">Troubleshooting</h2>
+            </div>
+            <p class="section-desc">Common issues and their solutions.</p>
+
+            <div class="accordion-item">
+                <button class="accordion-trigger" onclick="toggleAccordion(this)">
+                    <span>🍎 macOS "externally-managed-environment" error</span>
+                    <span class="chevron">▼</span>
+                </button>
+                <div class="accordion-body">
+                    <div class="accordion-content">
+                        <p style="font-weight:600; color: var(--text-light); margin-bottom: 12px;">Use the installer
+                            script (recommended) or install via pipx:</p>
+                        <div class="code-block-wrapper">
+                            <div class="code-block no-label">
+                                <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+                                <code><span class="comment"># Use the installer script (recommended)</span>
+<span class="command">curl</span> <span class="flag">-fsSL</span> <span class="url">https://raw.githubusercontent.com/PrajsRamteke/mgit/main/install.sh</span> | <span class="command">bash</span>
+
+<span class="comment"># Or use pipx</span>
+<span class="command">brew</span> install pipx && <span class="command">pipx</span> ensurepath
+<span class="command">pipx</span> install <span class="url">git+https://github.com/PrajsRamteke/mgit.git</span></code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <button class="accordion-trigger" onclick="toggleAccordion(this)">
+                    <span>❓ <code>mgit: command not found</code></span>
+                    <span class="chevron">▼</span>
+                </button>
+                <div class="accordion-body">
+                    <div class="accordion-content">
+                        <p style="font-weight:600; color: var(--text-light); margin-bottom: 12px;">Add the local bin
+                            directory to your PATH:</p>
+                        <div class="code-block-wrapper">
+                            <div class="code-block no-label">
+                                <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+                                <code><span class="command">echo</span> <span class="string">'export PATH="$HOME/.local/bin:$PATH"'</span> >> ~/.zshrc
+<span class="command">source</span> ~/.zshrc</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <button class="accordion-trigger" onclick="toggleAccordion(this)">
+                    <span>🔌 SSH Connection Failed</span>
+                    <span class="chevron">▼</span>
+                </button>
+                <div class="accordion-body">
+                    <div class="accordion-content">
+                        <ol class="steps-list">
+                            <li>Verify SSH key was added to GitHub/GitLab</li>
+                            <li>Check key matches: <code>mgit key &lt;name&gt;</code></li>
+                            <li>Start SSH agent: <code>eval "$(ssh-agent -s)"</code></li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <button class="accordion-trigger" onclick="toggleAccordion(this)">
+                    <span>🚫 Permission Denied</span>
+                    <span class="chevron">▼</span>
+                </button>
+                <div class="accordion-body">
+                    <div class="accordion-content">
+                        <p style="font-weight:600; color: var(--text-light); margin-bottom: 12px;">Test the connection
+                            and manually add the SSH key to the agent:</p>
+                        <div class="code-block-wrapper">
+                            <div class="code-block no-label">
+                                <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+                                <code><span class="command">mgit</span> test YourProfileName
+<span class="command">ssh-add</span> ~/.ssh/id_ed25519_YourProfileName</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <button class="accordion-trigger" onclick="toggleAccordion(this)">
+                    <span>📧 Email Not Public</span>
+                    <span class="chevron">▼</span>
+                </button>
+                <div class="accordion-body">
+                    <div class="accordion-content">
+                        <div class="callout callout-info">
+                            <span class="callout-icon">ℹ️</span>
+                            <div class="callout-content">
+                                mgit automatically uses GitHub's noreply email if your email isn't publicly visible. No
+                                action needed!
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer fade-in">
+            <div class="footer-card">
+                <div class="logo" style="font-size: 1.8rem;">
+                    <span class="logo-icon" style="width:52px; height:52px; font-size:1.5rem;">🔐</span>
+                    mgit
+                </div>
+                <p>Multi-Git Manager — Manage multiple Git accounts effortlessly.</p>
+                <div class="footer-links">
+                    <a href="https://github.com/PrajsRamteke/mgit" class="btn btn-primary btn-sm" target="_blank">⭐ Star
+                        on GitHub</a>
+                    <a href="https://github.com/PrajsRamteke/mgit/blob/main/LICENSE" class="btn btn-secondary btn-sm"
+                        target="_blank">📄 MIT License</a>
+                    <a href="https://github.com/PrajsRamteke/mgit/blob/main/CONTRIBUTING.md"
+                        class="btn btn-secondary btn-sm" target="_blank">🤝 Contributing</a>
+                </div>
+                <p style="font-size: 0.82rem; margin-top: 8px;">Made with ❤️ by <a
+                        href="https://github.com/PrajsRamteke" target="_blank">PrajsRamteke</a></p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Scroll to top -->
+    <button class="scroll-top" id="scrollTop" onclick="scrollToTop()">↑</button>
+
+    <script>
+        // Tab functionality
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabGroup = btn.closest('.tabs');
+                const targetId = btn.dataset.tab;
+
+                // Deactivate all tabs in this group
+                tabGroup.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                tabGroup.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+
+                // Activate selected tab
+                btn.classList.add('active');
+                document.getElementById(targetId).classList.add('active');
+            });
+        });
+
+        // Copy code functionality
+        function copyCode(button) {
+            const codeBlock = button.closest('.code-block');
+            const codeElement = codeBlock.querySelector('code');
+            const text = codeElement.textContent;
+
+            navigator.clipboard.writeText(text).then(() => {
+                button.classList.add('copied');
+                button.innerHTML = '✅ Copied!';
+                setTimeout(() => {
+                    button.classList.remove('copied');
+                    button.innerHTML = '📋 Copy';
+                }, 2000);
+            }).catch(() => {
+                // Fallback for older browsers
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+
+                button.classList.add('copied');
+                button.innerHTML = '✅ Copied!';
+                setTimeout(() => {
+                    button.classList.remove('copied');
+                    button.innerHTML = '📋 Copy';
+                }, 2000);
+            });
+        }
+
+        // Accordion functionality
+        function toggleAccordion(trigger) {
+            const item = trigger.closest('.accordion-item');
+            const isOpen = item.classList.contains('open');
+
+            // Close all accordion items in the same section (optional: remove for multi-open)
+            // item.closest('.section-card').querySelectorAll('.accordion-item').forEach(i => i.classList.remove('open'));
+
+            if (!isOpen) {
+                item.classList.add('open');
+            } else {
+                item.classList.remove('open');
+            }
+        }
+
+        // Scroll to top
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        window.addEventListener('scroll', () => {
+            const scrollTopBtn = document.getElementById('scrollTop');
+            if (window.scrollY > 400) {
+                scrollTopBtn.classList.add('visible');
+            } else {
+                scrollTopBtn.classList.remove('visible');
+            }
+        });
+
+        // Fade-in on scroll
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        });
+
+        document.querySelectorAll('.fade-in').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // ===== THEME SWITCHER =====
+        const themeIcons = { 'light': '☀️', 'dark': '🌙', 'ocean': '🌊', 'forest': '🌲', 'sunset': '🌅' };
+
+        function toggleThemeDropdown() {
+            const switcher = document.getElementById('themeSwitcher');
+            switcher.classList.toggle('open');
+        }
+
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('mgit-theme', theme);
+            updateThemeUI(theme);
+            document.getElementById('themeSwitcher').classList.remove('open');
+        }
+
+        function updateThemeUI(theme) {
+            document.getElementById('currentThemeIcon').textContent = themeIcons[theme] || '🎨';
+            document.querySelectorAll('.theme-option').forEach(opt => {
+                opt.classList.remove('active');
+                if (opt.dataset.theme === theme) opt.classList.add('active');
+            });
+        }
+
+        document.addEventListener('click', (e) => {
+            const switcher = document.getElementById('themeSwitcher');
+            if (switcher && !switcher.contains(e.target)) switcher.classList.remove('open');
+        });
+
+        (function initTheme() {
+            const savedTheme = localStorage.getItem('mgit-theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeUI(savedTheme);
+        })();
+    </script>
+</body>
+
+</html>

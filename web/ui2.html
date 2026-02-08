@@ -1,0 +1,2624 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mgit — Multi-Git Manager</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        :root {
+            --black: #0a0a0a;
+            --white: #f5f0e8;
+            --cream: #faf5eb;
+            --yellow: #f5d547;
+            --blue: #3d5afe;
+            --red: #ff3d3d;
+            --green: #2ee89e;
+            --orange: #ff7b3d;
+            --purple: #b44dff;
+            --pink: #ff4d8d;
+            --cyan: #00e5ff;
+            --border: 3px solid var(--black);
+            --border-thick: 5px solid var(--black);
+            --shadow: 6px 6px 0 var(--black);
+            --shadow-lg: 10px 10px 0 var(--black);
+            --shadow-sm: 3px 3px 0 var(--black);
+            --font-mono: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+            --font-sans: 'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            --radius: 0px;
+        }
+
+        /* ===== THEME VARIANTS ===== */
+        [data-theme="dark"] {
+            --black: #e0dbd3;
+            --white: #0a0a0a;
+            --cream: #1a1a1a;
+        }
+
+        [data-theme="ocean"] {
+            --white: #e0f7fa;
+            --cream: #b2ebf2;
+            --yellow: #00bcd4;
+            --green: #26c6da;
+            --black: #006064;
+        }
+
+        [data-theme="forest"] {
+            --white: #e8f5e9;
+            --cream: #c8e6c9;
+            --yellow: #8bc34a;
+            --green: #66bb6a;
+            --black: #1b5e20;
+        }
+
+        [data-theme="sunset"] {
+            --white: #fff3e0;
+            --cream: #ffe0b2;
+            --yellow: #ffb74d;
+            --orange: #ff9800;
+            --black: #bf360c;
+        }
+
+        /* ===== THEME SWITCHER ===== */
+        .theme-switcher {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            margin-left: 12px;
+        }
+
+        .theme-toggle-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: var(--yellow);
+            border: var(--border);
+            font-family: var(--font-mono);
+            font-size: .8rem;
+            font-weight: 700;
+            color: var(--black);
+            cursor: pointer;
+            transition: all .15s;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .theme-toggle-btn:hover {
+            transform: translate(2px, 2px);
+            box-shadow: none;
+        }
+
+        .theme-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
+            background: var(--white);
+            border: var(--border);
+            box-shadow: var(--shadow-sm);
+            min-width: 150px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px);
+            transition: all .2s;
+            z-index: 1001;
+        }
+
+        .theme-switcher.open .theme-dropdown {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .theme-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: .85rem;
+            color: var(--black);
+            transition: background .12s;
+            border-bottom: 1px solid var(--cream);
+        }
+
+        .theme-option:last-child {
+            border-bottom: none;
+        }
+
+        .theme-option:hover {
+            background: var(--yellow);
+        }
+
+        .theme-option.active {
+            background: var(--yellow);
+        }
+
+        .theme-icon {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 2px solid var(--black);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+        }
+
+        .theme-icon.light {
+            background: linear-gradient(135deg, #f5f0e8, #e0dbd3);
+        }
+
+        .theme-icon.dark {
+            background: linear-gradient(135deg, #0a0a0a, #2d2d2d);
+        }
+
+        .theme-icon.ocean {
+            background: linear-gradient(135deg, #00bcd4, #4dd0e1);
+        }
+
+        .theme-icon.forest {
+            background: linear-gradient(135deg, #66bb6a, #a5d6a7);
+        }
+
+        .theme-icon.sunset {
+            background: linear-gradient(135deg, #ffb74d, #ff9800);
+        }
+
+        html {
+            scroll-behavior: smooth;
+            font-size: 16px
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--cream);
+            color: var(--black);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar {
+            width: 14px
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--cream);
+            border-left: var(--border)
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--yellow);
+            border-left: var(--border)
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--orange)
+        }
+
+        /* SELECTION */
+        ::selection {
+            background: var(--yellow);
+            color: var(--black)
+        }
+
+        /* UTILITY */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0)
+        }
+
+        /* ===================== NAVBAR ===================== */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: var(--white);
+            border-bottom: var(--border-thick);
+            padding: 0 24px;
+            height: 72px;
+            display: flex;
+            align-items: center;
+        }
+
+        .navbar-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .navbar-brand {
+            font-family: var(--font-mono);
+            font-size: 1.5rem;
+            font-weight: 900;
+            text-decoration: none;
+            color: var(--black);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: -1px;
+        }
+
+        .navbar-brand .logo-box {
+            width: 40px;
+            height: 40px;
+            background: var(--yellow);
+            border: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            box-shadow: var(--shadow-sm);
+            transform: rotate(-3deg);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 6px;
+            align-items: center
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--black);
+            font-weight: 700;
+            font-size: .85rem;
+            padding: 8px 16px;
+            border: 2px solid transparent;
+            transition: all .15s;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+
+        .nav-links a:hover {
+            border: 2px solid var(--black);
+            background: var(--yellow)
+        }
+
+        .nav-cta {
+            background: var(--black) !important;
+            color: var(--white) !important;
+            border: var(--border) !important;
+            padding: 10px 22px !important;
+            box-shadow: var(--shadow-sm);
+            font-family: var(--font-mono) !important;
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+        .nav-cta:hover {
+            transform: translate(3px, 3px) !important;
+            box-shadow: none !important;
+            background: var(--blue) !important;
+        }
+
+        .mobile-toggle {
+            display: none;
+            width: 44px;
+            height: 44px;
+            background: var(--yellow);
+            border: var(--border);
+            cursor: pointer;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .mobile-toggle span {
+            width: 22px;
+            height: 3px;
+            background: var(--black);
+            display: block;
+            transition: all .3s
+        }
+
+        .mobile-toggle.active span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 6px)
+        }
+
+        .mobile-toggle.active span:nth-child(2) {
+            opacity: 0
+        }
+
+        .mobile-toggle.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(5px, -6px)
+        }
+
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 72px;
+            left: 0;
+            right: 0;
+            background: var(--white);
+            border-bottom: var(--border-thick);
+            padding: 20px 24px;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 999;
+        }
+
+        .mobile-menu.open {
+            display: flex
+        }
+
+        .mobile-menu a {
+            display: block;
+            padding: 14px 20px;
+            text-decoration: none;
+            color: var(--black);
+            font-weight: 700;
+            font-size: 1rem;
+            border: var(--border);
+            background: var(--cream);
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+
+        .mobile-menu a:hover {
+            background: var(--yellow)
+        }
+
+        /* ===================== HERO ===================== */
+        .hero {
+            margin-top: 72px;
+            padding: 80px 24px 60px;
+            position: relative;
+            border-bottom: var(--border-thick);
+            overflow: hidden;
+            background: repeating-linear-gradient(-45deg, transparent, transparent 20px, rgba(0, 0, 0, .02) 20px, rgba(0, 0, 0, .02) 40px);
+        }
+
+        .hero-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: var(--green);
+            border: var(--border);
+            padding: 6px 18px;
+            font-family: var(--font-mono);
+            font-size: .8rem;
+            font-weight: 700;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 24px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.8rem, 6vw, 5rem);
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: -3px;
+            margin-bottom: 20px;
+        }
+
+        .hero h1 .highlight {
+            background: var(--yellow);
+            padding: 0 12px;
+            border: var(--border);
+            box-shadow: var(--shadow-sm);
+            display: inline-block;
+            transform: rotate(-1deg);
+        }
+
+        .hero-desc {
+            font-size: 1.2rem;
+            line-height: 1.7;
+            max-width: 540px;
+            margin-bottom: 36px;
+            font-weight: 500;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-bottom: 32px
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 16px 32px;
+            font-family: var(--font-mono);
+            font-size: .95rem;
+            font-weight: 700;
+            text-decoration: none;
+            border: var(--border);
+            cursor: pointer;
+            transition: transform .15s, box-shadow .15s;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+
+        .btn:hover {
+            transform: translate(4px, 4px);
+            box-shadow: none
+        }
+
+        .btn-primary {
+            background: var(--yellow);
+            color: var(--black);
+            box-shadow: var(--shadow)
+        }
+
+        .btn-dark {
+            background: var(--black);
+            color: var(--white);
+            box-shadow: var(--shadow)
+        }
+
+        .btn-dark:hover {
+            background: var(--blue)
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--black);
+            box-shadow: var(--shadow)
+        }
+
+        .btn-outline:hover {
+            background: var(--cream)
+        }
+
+        .hero-terminal {
+            background: var(--black);
+            border: var(--border-thick);
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .terminal-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 18px;
+            border-bottom: var(--border);
+            background: #1a1a1a;
+        }
+
+        .terminal-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2px solid #333
+        }
+
+        .terminal-dot.r {
+            background: var(--red)
+        }
+
+        .terminal-dot.y {
+            background: var(--yellow)
+        }
+
+        .terminal-dot.g {
+            background: var(--green)
+        }
+
+        .terminal-title {
+            font-family: var(--font-mono);
+            color: #666;
+            font-size: .75rem;
+            margin-left: auto;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .terminal-body {
+            padding: 24px;
+            font-family: var(--font-mono);
+            font-size: .85rem;
+            color: var(--green);
+            line-height: 2
+        }
+
+        .terminal-body .prompt {
+            color: #888
+        }
+
+        .terminal-body .cmd {
+            color: var(--white)
+        }
+
+        .terminal-body .flag {
+            color: var(--yellow)
+        }
+
+        .terminal-body .out {
+            color: #888;
+            font-style: italic
+        }
+
+        .terminal-body .success {
+            color: var(--green)
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 24px;
+            margin-top: 10px
+        }
+
+        .stat-item {
+            padding: 10px 20px;
+            border: var(--border);
+            background: var(--white);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .stat-item .num {
+            font-family: var(--font-mono);
+            font-size: 1.4rem;
+            font-weight: 900
+        }
+
+        .stat-item .label {
+            font-size: .7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+            color: #555
+        }
+
+        /* ===================== INSTALL ===================== */
+        .install-section {
+            padding: 80px 24px;
+            border-bottom: var(--border-thick);
+            background: var(--white);
+        }
+
+        .section-header {
+            margin-bottom: 48px
+        }
+
+        .section-tag {
+            display: inline-block;
+            background: var(--black);
+            color: var(--white);
+            font-family: var(--font-mono);
+            font-size: .75rem;
+            font-weight: 700;
+            padding: 6px 16px;
+            border: var(--border);
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .section-title {
+            font-size: clamp(2rem, 4vw, 3.2rem);
+            font-weight: 900;
+            letter-spacing: -2px;
+            line-height: 1.1;
+            margin-bottom: 12px;
+        }
+
+        .section-subtitle {
+            font-size: 1.05rem;
+            max-width: 600px;
+            color: #444;
+            font-weight: 500
+        }
+
+        .install-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px
+        }
+
+        .install-card {
+            background: var(--cream);
+            border: var(--border);
+            padding: 0;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .install-card-header {
+            padding: 20px 24px;
+            border-bottom: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .install-card-header h3 {
+            font-size: 1.1rem;
+            font-weight: 800
+        }
+
+        .install-card-header .badge {
+            font-family: var(--font-mono);
+            font-size: .7rem;
+            padding: 4px 12px;
+            border: 2px solid var(--black);
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .badge-recommended {
+            background: var(--green)
+        }
+
+        .badge-alt {
+            background: var(--orange)
+        }
+
+        .install-card-body {
+            padding: 24px
+        }
+
+        .install-card-body p {
+            margin-bottom: 16px;
+            font-size: .9rem;
+            color: #444
+        }
+
+        /* Code blocks */
+        .code-block {
+            position: relative;
+            background: var(--black);
+            border: var(--border);
+            margin: 16px 0;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .code-block-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            border-bottom: 2px solid #333;
+            background: #111;
+        }
+
+        .code-block-lang {
+            font-family: var(--font-mono);
+            font-size: .7rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .copy-btn {
+            font-family: var(--font-mono);
+            font-size: .7rem;
+            padding: 4px 14px;
+            background: transparent;
+            color: #888;
+            border: 2px solid #444;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all .15s;
+            font-weight: 700;
+        }
+
+        .copy-btn:hover {
+            background: var(--yellow);
+            color: var(--black);
+            border-color: var(--yellow)
+        }
+
+        .copy-btn.copied {
+            background: var(--green);
+            color: var(--black);
+            border-color: var(--green)
+        }
+
+        .code-block pre {
+            padding: 20px;
+            margin: 0;
+            overflow-x: auto;
+            font-family: var(--font-mono);
+            font-size: .82rem;
+            line-height: 1.9;
+            color: #e0e0e0;
+        }
+
+        .code-block pre .comment {
+            color: #666
+        }
+
+        .code-block pre .string {
+            color: var(--green)
+        }
+
+        .code-block pre .flag {
+            color: var(--yellow)
+        }
+
+        /* ===================== QUICK START ===================== */
+        .quickstart {
+            padding: 80px 24px;
+            border-bottom: var(--border-thick);
+            background: var(--cream);
+        }
+
+        .steps-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0
+        }
+
+        .step {
+            display: grid;
+            grid-template-columns: 80px 1fr;
+            gap: 0;
+            border: var(--border);
+            border-bottom: none;
+            background: var(--white);
+            position: relative;
+        }
+
+        .step:last-child {
+            border-bottom: var(--border)
+        }
+
+        .step-number {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 28px;
+            background: var(--yellow);
+            border-right: var(--border);
+            font-family: var(--font-mono);
+            font-size: 1.8rem;
+            font-weight: 900;
+            position: relative;
+        }
+
+        .step:nth-child(2) .step-number {
+            background: var(--green)
+        }
+
+        .step:nth-child(3) .step-number {
+            background: var(--orange)
+        }
+
+        .step:nth-child(4) .step-number {
+            background: var(--cyan)
+        }
+
+        .step:nth-child(5) .step-number {
+            background: var(--purple);
+            color: var(--white)
+        }
+
+        .step-content {
+            padding: 28px 32px
+        }
+
+        .step-content h3 {
+            font-size: 1.3rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+            letter-spacing: -.5px;
+        }
+
+        .step-content>p {
+            font-size: .95rem;
+            color: #444;
+            margin-bottom: 16px;
+            line-height: 1.7
+        }
+
+        .step-content .substeps {
+            margin: 16px 0;
+            padding: 0;
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px
+        }
+
+        .step-content .substeps li {
+            padding: 10px 16px;
+            background: var(--cream);
+            border: 2px solid var(--black);
+            font-size: .9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .substeps li .step-icon {
+            width: 24px;
+            height: 24px;
+            background: var(--black);
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .7rem;
+            font-family: var(--font-mono);
+            font-weight: 900;
+            flex-shrink: 0;
+        }
+
+        .step-output {
+            margin: 16px 0 0;
+            padding: 16px;
+            background: #f0ece4;
+            border: 2px dashed var(--black);
+            font-family: var(--font-mono);
+            font-size: .8rem;
+            line-height: 1.8;
+        }
+
+        .step-output .label {
+            font-weight: 800;
+            text-transform: uppercase;
+            font-size: .7rem;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        /* ===================== COMMANDS TABLE ===================== */
+        .commands-section {
+            padding: 80px 24px;
+            border-bottom: var(--border-thick);
+            background: var(--white);
+        }
+
+        .table-wrapper {
+            border: var(--border-thick);
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            background: var(--cream);
+        }
+
+        .table-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: var(--border);
+            background: var(--yellow);
+        }
+
+        .table-toolbar h4 {
+            font-family: var(--font-mono);
+            font-size: .9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px
+        }
+
+        .table-search {
+            padding: 8px 16px;
+            border: var(--border);
+            font-family: var(--font-mono);
+            font-size: .8rem;
+            background: var(--white);
+            width: 260px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .table-search:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px var(--blue)
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse
+        }
+
+        thead {
+            background: var(--black);
+            color: var(--white)
+        }
+
+        thead th {
+            padding: 16px 20px;
+            text-align: left;
+            font-family: var(--font-mono);
+            font-size: .75rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            border-right: 2px solid #333;
+            font-weight: 700;
+        }
+
+        thead th:last-child {
+            border-right: none
+        }
+
+        tbody tr {
+            border-bottom: 2px solid var(--black);
+            transition: background .1s
+        }
+
+        tbody tr:hover {
+            background: var(--yellow)
+        }
+
+        tbody tr:last-child {
+            border-bottom: none
+        }
+
+        tbody td {
+            padding: 14px 20px;
+            font-size: .9rem;
+            border-right: 2px solid #ddd;
+            vertical-align: top
+        }
+
+        tbody td:last-child {
+            border-right: none
+        }
+
+        tbody td:first-child {
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: .82rem;
+            white-space: nowrap
+        }
+
+        tbody td:nth-child(2) {
+            font-family: var(--font-mono);
+            color: #666;
+            font-size: .82rem
+        }
+
+        /* ===================== EXAMPLES ===================== */
+        .examples-section {
+            padding: 80px 24px;
+            border-bottom: var(--border-thick);
+            background: var(--cream);
+        }
+
+        .examples-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px
+        }
+
+        .example-card {
+            background: var(--white);
+            border: var(--border);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .example-card-accent {
+            height: 8px;
+            background: var(--yellow)
+        }
+
+        .example-card:nth-child(2) .example-card-accent {
+            background: var(--green)
+        }
+
+        .example-card:nth-child(3) .example-card-accent {
+            background: var(--blue)
+        }
+
+        .example-card-body {
+            padding: 24px;
+            flex: 1;
+            display: flex;
+            flex-direction: column
+        }
+
+        .example-card-body h4 {
+            font-size: 1.1rem;
+            font-weight: 800;
+            margin-bottom: 12px
+        }
+
+        .example-card-body p {
+            font-size: .85rem;
+            color: #555;
+            margin-bottom: 16px
+        }
+
+        .example-card-body .code-block {
+            margin-top: auto
+        }
+
+        /* ===================== ADVANCED ===================== */
+        .advanced-section {
+            padding: 80px 24px;
+            border-bottom: var(--border-thick);
+            background: var(--white);
+        }
+
+        .advanced-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px
+        }
+
+        .advanced-panel {
+            border: var(--border);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            background: var(--cream);
+        }
+
+        .advanced-panel-header {
+            padding: 20px 24px;
+            border-bottom: var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .panel-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--purple);
+            border: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-mono);
+            font-weight: 900;
+            font-size: .9rem;
+            color: var(--white);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .advanced-panel:nth-child(2) .panel-icon {
+            background: var(--blue)
+        }
+
+        .advanced-panel-header h4 {
+            font-size: 1.1rem;
+            font-weight: 800
+        }
+
+        .advanced-panel-body {
+            padding: 24px
+        }
+
+        .options-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px
+        }
+
+        .options-list li {
+            padding: 10px 14px;
+            background: var(--white);
+            border: 2px solid #ddd;
+            font-size: .85rem;
+            display: flex;
+            gap: 12px;
+            align-items: baseline;
+            transition: border-color .15s;
+        }
+
+        .options-list li:hover {
+            border-color: var(--black)
+        }
+
+        .options-list li .opt {
+            font-family: var(--font-mono);
+            font-weight: 700;
+            color: var(--blue);
+            flex-shrink: 0;
+            min-width: 140px;
+            font-size: .8rem;
+        }
+
+        .options-list li .desc {
+            color: #444
+        }
+
+        /* ===================== TROUBLESHOOTING (ACCORDION) ===================== */
+        .troubleshoot-section {
+            padding: 80px 24px;
+            border-bottom: var(--border-thick);
+            background: var(--cream);
+        }
+
+        .accordion {
+            display: flex;
+            flex-direction: column;
+            gap: 0
+        }
+
+        .accordion-item {
+            border: var(--border);
+            border-bottom: none;
+            background: var(--white)
+        }
+
+        .accordion-item:last-child {
+            border-bottom: var(--border)
+        }
+
+        .accordion-trigger {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-family: var(--font-sans);
+            font-size: 1rem;
+            font-weight: 800;
+            text-align: left;
+            color: var(--black);
+            transition: background .15s;
+        }
+
+        .accordion-trigger:hover {
+            background: var(--yellow)
+        }
+
+        .accordion-trigger .icon {
+            width: 32px;
+            height: 32px;
+            background: var(--black);
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-mono);
+            font-size: 1.2rem;
+            font-weight: 900;
+            transition: transform .3s;
+            flex-shrink: 0;
+        }
+
+        .accordion-item.open .accordion-trigger .icon {
+            transform: rotate(45deg)
+        }
+
+        .accordion-item.open .accordion-trigger {
+            background: var(--yellow)
+        }
+
+        .accordion-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height .4s ease;
+            border-top: none;
+        }
+
+        .accordion-body-inner {
+            padding: 24px;
+            border-top: var(--border)
+        }
+
+        .accordion-body-inner p {
+            font-size: .9rem;
+            color: #444;
+            margin-bottom: 12px;
+            line-height: 1.7
+        }
+
+        /* ===================== FOOTER ===================== */
+        .footer {
+            background: var(--black);
+            color: var(--white);
+            padding: 60px 24px 24px;
+            border-top: var(--border-thick);
+        }
+
+        .footer-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 48px;
+        }
+
+        .footer-brand h3 {
+            font-family: var(--font-mono);
+            font-size: 1.6rem;
+            font-weight: 900;
+            margin-bottom: 16px;
+            letter-spacing: -1px;
+        }
+
+        .footer-brand p {
+            color: #888;
+            font-size: .9rem;
+            line-height: 1.7;
+            max-width: 320px
+        }
+
+        .footer-col h5 {
+            font-family: var(--font-mono);
+            font-size: .8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            color: var(--yellow);
+        }
+
+        .footer-col a {
+            display: block;
+            color: #aaa;
+            text-decoration: none;
+            padding: 4px 0;
+            font-size: .9rem;
+            transition: color .15s;
+        }
+
+        .footer-col a:hover {
+            color: var(--yellow)
+        }
+
+        .footer-bottom {
+            max-width: 1200px;
+            margin: 48px auto 0;
+            padding-top: 24px;
+            border-top: 2px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .footer-bottom p {
+            color: #666;
+            font-size: .8rem;
+            font-family: var(--font-mono)
+        }
+
+        .footer-bottom .links {
+            display: flex;
+            gap: 24px
+        }
+
+        .footer-bottom .links a {
+            color: #666;
+            text-decoration: none;
+            font-size: .8rem;
+            font-family: var(--font-mono)
+        }
+
+        .footer-bottom .links a:hover {
+            color: var(--yellow)
+        }
+
+        /* ===================== BACK TO TOP ===================== */
+        .back-to-top {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            width: 56px;
+            height: 56px;
+            background: var(--yellow);
+            border: var(--border);
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-family: var(--font-mono);
+            font-size: 1.4rem;
+            font-weight: 900;
+            transition: transform .15s, box-shadow .15s, opacity .3s;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 900;
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            pointer-events: all
+        }
+
+        .back-to-top:hover {
+            transform: translate(4px, 4px);
+            box-shadow: none
+        }
+
+        /* ===================== TABS ===================== */
+        .tab-container {
+            margin: 24px 0
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 0;
+            border: var(--border);
+            border-bottom: none;
+            background: var(--black)
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 14px 20px;
+            background: transparent;
+            color: #888;
+            border: none;
+            border-right: var(--border);
+            cursor: pointer;
+            font-family: var(--font-mono);
+            font-size: .8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all .15s;
+        }
+
+        .tab-btn:last-child {
+            border-right: none
+        }
+
+        .tab-btn:hover {
+            color: var(--white)
+        }
+
+        .tab-btn.active {
+            background: var(--yellow);
+            color: var(--black)
+        }
+
+        .tab-panel {
+            display: none;
+            border: var(--border);
+            border-top: none;
+            padding: 24px;
+            background: var(--white)
+        }
+
+        .tab-panel.active {
+            display: block
+        }
+
+        .tab-panel p {
+            font-size: .9rem;
+            color: #444;
+            line-height: 1.7;
+            margin-bottom: 12px
+        }
+
+        /* ===================== FEATURE STRIP ===================== */
+        .feature-strip {
+            border-bottom: var(--border-thick);
+            overflow: hidden;
+            background: var(--yellow);
+            padding: 0;
+        }
+
+        .marquee {
+            display: flex;
+            animation: marquee 25s linear infinite;
+            white-space: nowrap;
+        }
+
+        .marquee-content {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            flex-shrink: 0;
+        }
+
+        .marquee-item {
+            padding: 16px 40px;
+            font-family: var(--font-mono);
+            font-size: .85rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-right: var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .marquee-item .dot {
+            width: 8px;
+            height: 8px;
+            background: var(--black);
+        }
+
+        @keyframes marquee {
+            0% {
+                transform: translateX(0)
+            }
+
+            100% {
+                transform: translateX(-50%)
+            }
+        }
+
+        /* ===================== PLATFORMS ===================== */
+        .platforms-bar {
+            padding: 20px 24px;
+            border-bottom: var(--border-thick);
+            background: var(--black);
+        }
+
+        .platforms-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 32px;
+            flex-wrap: wrap;
+        }
+
+        .platform-badge {
+            padding: 10px 24px;
+            border: 2px solid #444;
+            color: #aaa;
+            font-family: var(--font-mono);
+            font-size: .8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all .15s;
+        }
+
+        .platform-badge:hover {
+            border-color: var(--yellow);
+            color: var(--yellow)
+        }
+
+        /* ===================== RESPONSIVE ===================== */
+        @media(max-width:1024px) {
+            .hero-inner {
+                grid-template-columns: 1fr;
+                gap: 40px
+            }
+
+            .install-grid {
+                grid-template-columns: 1fr
+            }
+
+            .examples-grid {
+                grid-template-columns: 1fr
+            }
+
+            .advanced-grid {
+                grid-template-columns: 1fr
+            }
+
+            .footer-inner {
+                grid-template-columns: 1fr 1fr;
+                gap: 32px
+            }
+        }
+
+        @media(max-width:768px) {
+            .nav-links {
+                display: none
+            }
+
+            .mobile-toggle {
+                display: flex
+            }
+
+            .hero {
+                padding: 60px 24px 40px
+            }
+
+            .hero h1 {
+                font-size: 2.4rem;
+                letter-spacing: -2px
+            }
+
+            .hero-stats {
+                flex-wrap: wrap
+            }
+
+            .table-toolbar {
+                flex-direction: column;
+                gap: 12px;
+                align-items: flex-start
+            }
+
+            .table-search {
+                width: 100%
+            }
+
+            .step {
+                grid-template-columns: 50px 1fr
+            }
+
+            .step-number {
+                font-size: 1.2rem;
+                padding-top: 24px
+            }
+
+            .step-content {
+                padding: 20px
+            }
+
+            .footer-inner {
+                grid-template-columns: 1fr
+            }
+
+            .footer-bottom {
+                flex-direction: column;
+                gap: 12px;
+                text-align: center
+            }
+
+            .hero-actions {
+                flex-direction: column
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center
+            }
+        }
+
+        @media(max-width:480px) {
+            .hero h1 {
+                font-size: 2rem
+            }
+
+            .section-title {
+                font-size: 1.8rem
+            }
+
+            .options-list li {
+                flex-direction: column;
+                gap: 4px
+            }
+
+            .options-list li .opt {
+                min-width: auto
+            }
+        }
+
+        /* ===================== SMOOTH REVEALS ===================== */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity .6s ease, transform .6s ease
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0)
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a href="#" class="navbar-brand">
+                <div class="logo-box">M</div>
+                mgit
+            </a>
+            <div class="nav-links">
+                <a href="#installation">Install</a>
+                <a href="#quickstart">Quick Start</a>
+                <a href="#commands">Commands</a>
+                <a href="#examples">Examples</a>
+                <a href="#advanced">Advanced</a>
+                <a href="#troubleshooting">Help</a>
+                <a href="https://github.com/PrajsRamteke/mgit" class="nav-cta" target="_blank" rel="noopener">GitHub</a>
+            </div>
+            <!-- Theme Switcher -->
+            <div class="theme-switcher" id="themeSwitcher">
+                <button class="theme-toggle-btn" onclick="toggleThemeDropdown()">
+                    <span id="currentThemeIcon">🎨</span> Theme
+                </button>
+                <div class="theme-dropdown">
+                    <div class="theme-option" data-theme="light" onclick="setTheme('light')">
+                        <span class="theme-icon light">☀️</span> Light
+                    </div>
+                    <div class="theme-option" data-theme="dark" onclick="setTheme('dark')">
+                        <span class="theme-icon dark">🌙</span> Dark
+                    </div>
+                    <div class="theme-option" data-theme="ocean" onclick="setTheme('ocean')">
+                        <span class="theme-icon ocean">🌊</span> Ocean
+                    </div>
+                    <div class="theme-option" data-theme="forest" onclick="setTheme('forest')">
+                        <span class="theme-icon forest">🌲</span> Forest
+                    </div>
+                    <div class="theme-option" data-theme="sunset" onclick="setTheme('sunset')">
+                        <span class="theme-icon sunset">🌅</span> Sunset
+                    </div>
+                </div>
+            </div>
+            <button class="mobile-toggle" id="mobileToggle" aria-label="Toggle menu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
+    <div class="mobile-menu" id="mobileMenu">
+        <a href="#installation">Install</a>
+        <a href="#quickstart">Quick Start</a>
+        <a href="#commands">Commands</a>
+        <a href="#examples">Examples</a>
+        <a href="#advanced">Advanced</a>
+        <a href="#troubleshooting">Troubleshooting</a>
+        <a href="https://github.com/PrajsRamteke/mgit" target="_blank" rel="noopener">GitHub</a>
+    </div>
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="hero-inner">
+            <div>
+                <div class="hero-badge">Open Source CLI Tool</div>
+                <h1>Multi-Git<br>Manager<br><span class="highlight">mgit</span></h1>
+                <p class="hero-desc">
+                    Manage multiple Git accounts on a single machine effortlessly. Generate SSH keys, configure SSH
+                    aliases, and switch between Git identities with ease.
+                </p>
+                <div class="hero-actions">
+                    <a href="#installation" class="btn btn-primary">Get Started</a>
+                    <a href="https://github.com/PrajsRamteke/mgit" class="btn btn-dark" target="_blank"
+                        rel="noopener">View on GitHub</a>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <div class="num">3</div>
+                        <div class="label">Providers</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="num">10+</div>
+                        <div class="label">Commands</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="num">MIT</div>
+                        <div class="label">License</div>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-terminal">
+                <div class="terminal-bar">
+                    <div class="terminal-dot r"></div>
+                    <div class="terminal-dot y"></div>
+                    <div class="terminal-dot g"></div>
+                    <div class="terminal-title">terminal</div>
+                </div>
+                <div class="terminal-body" id="heroTerminal">
+                    <div><span class="prompt">$ </span><span class="cmd">mgit add johndoe </span><span
+                            class="flag">-d</span></div>
+                    <div><span class="out">Fetching user details from github...</span></div>
+                    <div><span class="out">&nbsp; Name: John Doe</span></div>
+                    <div><span class="out">&nbsp; Email: john@example.com</span></div>
+                    <div><span class="success">Profile 'johndoe' created successfully!</span></div>
+                    <div>&nbsp;</div>
+                    <div><span class="prompt">$ </span><span class="cmd">mgit add acme-corp </span><span class="flag">-n
+                            work</span></div>
+                    <div><span class="success">Profile 'work' created successfully!</span></div>
+                    <div>&nbsp;</div>
+                    <div><span class="prompt">$ </span><span class="cmd">mgit use work</span></div>
+                    <div><span class="success">Switched to profile 'work'</span></div>
+                    <div>&nbsp;</div>
+                    <div><span class="prompt">$ </span><span class="cmd">mgit ls</span></div>
+                    <div><span class="out">&nbsp; johndoe&nbsp;&nbsp;&nbsp;github&nbsp;&nbsp;[default]</span></div>
+                    <div><span class="out">&nbsp;
+                            work&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;github&nbsp;&nbsp;[active]</span></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FEATURE STRIP -->
+    <div class="feature-strip">
+        <div class="marquee">
+            <div class="marquee-content">
+                <div class="marquee-item"><span class="dot"></span>SSH Key Generation</div>
+                <div class="marquee-item"><span class="dot"></span>Profile Switching</div>
+                <div class="marquee-item"><span class="dot"></span>Auto-Fetch User Info</div>
+                <div class="marquee-item"><span class="dot"></span>Workspace Auto-Switch</div>
+                <div class="marquee-item"><span class="dot"></span>GitHub Support</div>
+                <div class="marquee-item"><span class="dot"></span>GitLab Support</div>
+                <div class="marquee-item"><span class="dot"></span>Bitbucket Support</div>
+                <div class="marquee-item"><span class="dot"></span>Custom Providers</div>
+                <div class="marquee-item"><span class="dot"></span>GPG Signing</div>
+                <div class="marquee-item"><span class="dot"></span>ED25519 &amp; RSA</div>
+            </div>
+            <div class="marquee-content" aria-hidden="true">
+                <div class="marquee-item"><span class="dot"></span>SSH Key Generation</div>
+                <div class="marquee-item"><span class="dot"></span>Profile Switching</div>
+                <div class="marquee-item"><span class="dot"></span>Auto-Fetch User Info</div>
+                <div class="marquee-item"><span class="dot"></span>Workspace Auto-Switch</div>
+                <div class="marquee-item"><span class="dot"></span>GitHub Support</div>
+                <div class="marquee-item"><span class="dot"></span>GitLab Support</div>
+                <div class="marquee-item"><span class="dot"></span>Bitbucket Support</div>
+                <div class="marquee-item"><span class="dot"></span>Custom Providers</div>
+                <div class="marquee-item"><span class="dot"></span>GPG Signing</div>
+                <div class="marquee-item"><span class="dot"></span>ED25519 &amp; RSA</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PLATFORMS -->
+    <div class="platforms-bar">
+        <div class="platforms-inner">
+            <div class="platform-badge">macOS</div>
+            <div class="platform-badge">Linux</div>
+            <div class="platform-badge">WSL</div>
+            <div class="platform-badge">GitHub</div>
+            <div class="platform-badge">GitLab</div>
+            <div class="platform-badge">Bitbucket</div>
+        </div>
+    </div>
+
+    <!-- INSTALLATION -->
+    <section class="install-section" id="installation">
+        <div class="container">
+            <div class="section-header reveal">
+                <div class="section-tag">Installation</div>
+                <h2 class="section-title">Get up and running<br>in under a minute.</h2>
+                <p class="section-subtitle">Choose your preferred installation method. Copy one by one and paste in
+                    terminal.</p>
+            </div>
+            <div class="install-grid">
+                <div class="install-card reveal">
+                    <div class="install-card-header">
+                        <h3>Quick Install</h3>
+                        <span class="badge badge-recommended">Recommended</span>
+                    </div>
+                    <div class="install-card-body">
+                        <p>The fastest way to get started. Uses the install script and sets up your PATH automatically.
+                        </p>
+                        <div class="code-block">
+                            <div class="code-block-header">
+                                <span class="code-block-lang">bash</span>
+                                <button class="copy-btn" data-copy="curl -fsSL https://raw.githubusercontent.com/PrajsRamteke/mgit/main/install.sh | bash
+echo 'export PATH=&quot;$HOME/.local/bin:$PATH&quot;' >> ~/.zshrc
+source ~/.zshrc
+mgit --version
+mgit --help">Copy</button>
+                            </div>
+                            <pre>curl -fsSL https://raw.githubusercontent.com/PrajsRamteke/mgit/main/install.sh | bash
+echo <span class="string">'export PATH="$HOME/.local/bin:$PATH"'</span> >> ~/.zshrc
+source ~/.zshrc
+mgit <span class="flag">--version</span>
+mgit <span class="flag">--help</span></pre>
+                        </div>
+                    </div>
+                </div>
+                <div class="install-card reveal">
+                    <div class="install-card-header">
+                        <h3>Install with pipx</h3>
+                        <span class="badge badge-alt">Alternative</span>
+                    </div>
+                    <div class="install-card-body">
+                        <p>If you prefer using pipx for isolated Python tool installations. Great for keeping your
+                            system clean.</p>
+                        <div class="code-block">
+                            <div class="code-block-header">
+                                <span class="code-block-lang">bash</span>
+                                <button class="copy-btn" data-copy="# Install pipx (if needed)
+brew install pipx
+pipx ensurepath
+
+# Install mgit
+pipx install git+https://github.com/PrajsRamteke/mgit.git">Copy</button>
+                            </div>
+                            <pre><span class="comment"># Install pipx (if needed)</span>
+brew install pipx
+pipx ensurepath
+
+<span class="comment"># Install mgit</span>
+pipx install git+https://github.com/PrajsRamteke/mgit.git</pre>
+                        </div>
+                        <p style="margin-top:16px;font-weight:600">Verify installation:</p>
+                        <div class="code-block">
+                            <div class="code-block-header">
+                                <span class="code-block-lang">bash</span>
+                                <button class="copy-btn" data-copy="mgit --version
+mgit --help">Copy</button>
+                            </div>
+                            <pre>mgit <span class="flag">--version</span>
+mgit <span class="flag">--help</span></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- QUICK START -->
+    <section class="quickstart" id="quickstart">
+        <div class="container">
+            <div class="section-header reveal">
+                <div class="section-tag">Quick Start</div>
+                <h2 class="section-title">Five steps to<br>multi-account mastery.</h2>
+                <p class="section-subtitle">Follow this guided workflow to add your accounts, configure SSH, and start
+                    working across multiple Git identities.</p>
+            </div>
+            <div class="steps-container reveal">
+
+                <!-- Step 1 -->
+                <div class="step">
+                    <div class="step-number">01</div>
+                    <div class="step-content">
+                        <h3>Add Your Account</h3>
+                        <p>Just provide your GitHub/GitLab username and mgit automatically fetches your name and email.
+                        </p>
+                        <div class="code-block">
+                            <div class="code-block-header">
+                                <span class="code-block-lang">bash</span>
+                                <button class="copy-btn" data-copy="# Add GitHub account (set as default)
+mgit add YourGitHubUsername -d
+
+# Add with custom profile name
+mgit add YourGitHubUsername -n work
+
+# Add GitLab account
+mgit add YourGitLabUsername -p gitlab
+
+# Add Bitbucket account
+mgit add YourBitbucketUsername -p bitbucket">Copy</button>
+                            </div>
+                            <pre><span class="comment"># Add GitHub account (set as default)</span>
+mgit add YourGitHubUsername <span class="flag">-d</span>
+
+<span class="comment"># Add with custom profile name</span>
+mgit add YourGitHubUsername <span class="flag">-n work</span>
+
+<span class="comment"># Add GitLab account</span>
+mgit add YourGitLabUsername <span class="flag">-p gitlab</span>
+
+<span class="comment"># Add Bitbucket account</span>
+mgit add YourBitbucketUsername <span class="flag">-p bitbucket</span></pre>
+                        </div>
+                        <div class="step-output">
+                            <span class="label">Expected Output:</span>
+                            Fetching user details from github...<br>
+                            &nbsp; Name: Your Name<br>
+                            &nbsp; Email: your@email.com<br>
+                            Profile 'YourGitHubUsername' created successfully!
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="step">
+                    <div class="step-number">02</div>
+                    <div class="step-content">
+                        <h3>Get Your SSH Public Key</h3>
+                        <p>Copy your public key to add it to your Git provider settings.</p>
+                        <div class="code-block">
+                            <div class="code-block-header">
+                                <span class="code-block-lang">bash</span>
+                                <button class="copy-btn" data-copy="mgit key YourProfileName">Copy</button>
+                            </div>
+                            <pre>mgit key YourProfileName</pre>
+                        </div>
+                        <div class="step-output">
+                            <span class="label">Output:</span>
+                            Public key for 'YourProfileName':<br><br>
+                            ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIG... your@email.com
+                        </div>
+                        <p style="margin-top:12px;font-weight:700">Copy the entire key -- you will need it in the next
+                            step.</p>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="step">
+                    <div class="step-number">03</div>
+                    <div class="step-content">
+                        <h3>Add SSH Key to Your Provider</h3>
+                        <p>Paste your SSH public key into your Git provider's settings.</p>
+
+                        <div class="tab-container">
+                            <div class="tab-buttons">
+                                <button class="tab-btn active" data-tab="tab-github">GitHub</button>
+                                <button class="tab-btn" data-tab="tab-gitlab">GitLab</button>
+                                <button class="tab-btn" data-tab="tab-bitbucket">Bitbucket</button>
+                            </div>
+                            <div class="tab-panel active" id="tab-github">
+                                <ul class="substeps">
+                                    <li><span class="step-icon">1</span> Go to <a
+                                            href="https://github.com/settings/keys" target="_blank" rel="noopener"
+                                            style="color:var(--blue);font-weight:700">GitHub SSH Settings</a></li>
+                                    <li><span class="step-icon">2</span> Click "New SSH key"</li>
+                                    <li><span class="step-icon">3</span> Paste your key and save</li>
+                                </ul>
+                            </div>
+                            <div class="tab-panel" id="tab-gitlab">
+                                <ul class="substeps">
+                                    <li><span class="step-icon">1</span> Go to <a
+                                            href="https://gitlab.com/-/user_settings/ssh_keys" target="_blank"
+                                            rel="noopener" style="color:var(--blue);font-weight:700">GitLab SSH Keys</a>
+                                    </li>
+                                    <li><span class="step-icon">2</span> Click "Add new key"</li>
+                                    <li><span class="step-icon">3</span> Paste your key and save</li>
+                                </ul>
+                            </div>
+                            <div class="tab-panel" id="tab-bitbucket">
+                                <ul class="substeps">
+                                    <li><span class="step-icon">1</span> Go to Bitbucket &rarr; Personal Settings</li>
+                                    <li><span class="step-icon">2</span> Navigate to SSH keys</li>
+                                    <li><span class="step-icon">3</span> Add your key and save</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="step">
+                    <div class="step-number">04</div>
+                    <div class="step-content">
+                        <h3>Test Connection</h3>
+                        <p>Verify that your SSH key is properly configured and can authenticate with your provider.</p>
+                        <div class="code-block">
+                            <div class="code-block-header">
+                                <span class="code-block-lang">bash</span>
+                                <button class="copy-btn" data-copy="mgit test YourProfileName">Copy</button>
+                            </div>
+                            <pre>mgit test YourProfileName</pre>
+                        </div>
+                        <div class="step-output">
+                            <span class="label">Expected Output:</span>
+                            SSH connection successful for 'YourProfileName'<br>
+                            &nbsp; Hi YourProfileName! You've successfully authenticated.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 5 -->
+                <div class="step">
+                    <div class="step-number">05</div>
+                    <div class="step-content">
+                        <h3>Start Using</h3>
+                        <p>Switch between profiles, clone repositories, and work with your preferred identity.</p>
+                        <div class="code-block">
+                            <div class="code-block-header">
+                                <span class="code-block-lang">bash</span>
+                                <button class="copy-btn" data-copy="# Switch to a profile (global)
+mgit use YourProfileName
+
+# Switch for current repository only
+mgit use YourProfileName -l
+
+# Clone with specific profile
+mgit clone YourProfileName git@github.com:username/repo.git">Copy</button>
+                            </div>
+                            <pre><span class="comment"># Switch to a profile (global)</span>
+mgit use YourProfileName
+
+<span class="comment"># Switch for current repository only</span>
+mgit use YourProfileName <span class="flag">-l</span>
+
+<span class="comment"># Clone with specific profile</span>
+mgit clone YourProfileName git@github.com:username/repo.git</pre>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- COMMANDS -->
+    <section class="commands-section" id="commands">
+        <div class="container">
+            <div class="section-header reveal">
+                <div class="section-tag">Commands</div>
+                <h2 class="section-title">Complete command<br>reference.</h2>
+                <p class="section-subtitle">Every command and alias at your fingertips. Use the search to filter.</p>
+            </div>
+            <div class="table-wrapper reveal">
+                <div class="table-toolbar">
+                    <h4>All Commands</h4>
+                    <input type="text" class="table-search" id="tableSearch" placeholder="Search commands...">
+                </div>
+                <table id="commandsTable">
+                    <thead>
+                        <tr>
+                            <th>Command</th>
+                            <th>Alias</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>mgit add &lt;username&gt;</td>
+                            <td>--</td>
+                            <td>Add a new account profile</td>
+                        </tr>
+                        <tr>
+                            <td>mgit remove &lt;name&gt;</td>
+                            <td>mgit rm</td>
+                            <td>Remove a profile</td>
+                        </tr>
+                        <tr>
+                            <td>mgit list</td>
+                            <td>mgit ls</td>
+                            <td>List all profiles</td>
+                        </tr>
+                        <tr>
+                            <td>mgit switch &lt;name&gt;</td>
+                            <td>mgit use</td>
+                            <td>Switch to a profile</td>
+                        </tr>
+                        <tr>
+                            <td>mgit show-key &lt;name&gt;</td>
+                            <td>mgit key</td>
+                            <td>Show SSH public key</td>
+                        </tr>
+                        <tr>
+                            <td>mgit test &lt;name&gt;</td>
+                            <td>--</td>
+                            <td>Test SSH connection</td>
+                        </tr>
+                        <tr>
+                            <td>mgit current</td>
+                            <td>--</td>
+                            <td>Show current config</td>
+                        </tr>
+                        <tr>
+                            <td>mgit clone &lt;name&gt; &lt;url&gt;</td>
+                            <td>--</td>
+                            <td>Clone with specific profile</td>
+                        </tr>
+                        <tr>
+                            <td>mgit info &lt;username&gt;</td>
+                            <td>--</td>
+                            <td>Preview user info without adding</td>
+                        </tr>
+                        <tr>
+                            <td>mgit workspace &lt;name&gt; &lt;dir&gt;</td>
+                            <td>--</td>
+                            <td>Set workspace for auto-switching</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- EXAMPLES -->
+    <section class="examples-section" id="examples">
+        <div class="container">
+            <div class="section-header reveal">
+                <div class="section-tag">Examples</div>
+                <h2 class="section-title">Real-world usage<br>patterns.</h2>
+                <p class="section-subtitle">Common workflows and how to accomplish them with mgit.</p>
+            </div>
+            <div class="examples-grid">
+
+                <div class="example-card reveal">
+                    <div class="example-card-accent"></div>
+                    <div class="example-card-body">
+                        <h4>Add Multiple Accounts</h4>
+                        <p>Set up personal, work, and freelance accounts with different providers.</p>
+                        <div class="code-block">
+                            <div class="code-block-header">
+                                <span class="code-block-lang">bash</span>
+                                <button class="copy-btn" data-copy="# Personal GitHub (default)
+mgit add johndoe -d
+
+# Work GitHub
+mgit add john-doe-company -n work
+
+# GitLab account
+mgit add jdoe -p gitlab -n freelance">Copy</button>
+                            </div>
+                            <pre><span class="comment"># Personal GitHub (default)</span>
+mgit add johndoe <span class="flag">-d</span>
+
+<span class="comment"># Work GitHub</span>
+mgit add john-doe-company <span class="flag">-n work</span>
+
+<span class="comment"># GitLab account</span>
+mgit add jdoe <span class="flag">-p gitlab -n freelance</span></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="example-card reveal">
+                    <div class="example-card-accent"></div>
+                    <div class="example-card-body">
+                        <h4>View All Accounts</h4>
+                        <p>List all configured profiles with their providers and status.</p>
+                        <div class="code-block">
+                            <div class="code-block-header">
+                                <span class="code-block-lang">bash</span>
+                                <button class="copy-btn" data-copy="mgit ls">Copy</button>
+                            </div>
+                            <pre>mgit ls</pre>
+                        </div>
+                        <div style="margin-top:16px">
+                            <p style="font-weight:700;font-size:.85rem;margin-bottom:8px">Check current configuration:
+                            </p>
+                            <div class="code-block">
+                                <div class="code-block-header">
+                                    <span class="code-block-lang">bash</span>
+                                    <button class="copy-btn" data-copy="mgit current">Copy</button>
+                                </div>
+                                <pre>mgit current</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="example-card reveal">
+                    <div class="example-card-accent"></div>
+                    <div class="example-card-body">
+                        <h4>Preview User Info</h4>
+                        <p>Look up user details from any provider before adding a profile.</p>
+                        <div class="code-block">
+                            <div class="code-block-header">
+                                <span class="code-block-lang">bash</span>
+                                <button class="copy-btn" data-copy="mgit info SomeUsername
+mgit info SomeUser -p gitlab">Copy</button>
+                            </div>
+                            <pre>mgit info SomeUsername
+mgit info SomeUser <span class="flag">-p gitlab</span></pre>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ADVANCED -->
+    <section class="advanced-section" id="advanced">
+        <div class="container">
+            <div class="section-header reveal">
+                <div class="section-tag">Advanced</div>
+                <h2 class="section-title">Advanced options &amp;<br>configuration.</h2>
+                <p class="section-subtitle">Fine-tune your profiles with extended options and workspace-based
+                    auto-switching.</p>
+            </div>
+            <div class="advanced-grid">
+
+                <div class="advanced-panel reveal">
+                    <div class="advanced-panel-header">
+                        <div class="panel-icon">&gt;</div>
+                        <h4>Add Command Options</h4>
+                    </div>
+                    <div class="advanced-panel-body">
+                        <div class="code-block" style="margin-bottom:20px">
+                            <div class="code-block-header">
+                                <span class="code-block-lang">usage</span>
+                                <button class="copy-btn" data-copy="mgit add <username> [OPTIONS]">Copy</button>
+                            </div>
+                            <pre>mgit add &lt;username&gt; [OPTIONS]</pre>
+                        </div>
+                        <ul class="options-list">
+                            <li><span class="opt">-p, --provider</span><span class="desc">Git provider: github, gitlab,
+                                    bitbucket, custom (default: github)</span></li>
+                            <li><span class="opt">-n, --name</span><span class="desc">Profile name (default:
+                                    username)</span></li>
+                            <li><span class="opt">-e, --email</span><span class="desc">Override email (auto-fetched if
+                                    not provided)</span></li>
+                            <li><span class="opt">-d, --default</span><span class="desc">Set as default profile</span>
+                            </li>
+                            <li><span class="opt">-w, --workspace</span><span class="desc">Workspace directory for
+                                    auto-switching</span></li>
+                            <li><span class="opt">-k, --key-type</span><span class="desc">SSH key type: ed25519, rsa
+                                    (default: ed25519)</span></li>
+                            <li><span class="opt">--passphrase</span><span class="desc">SSH key passphrase</span></li>
+                            <li><span class="opt">--signing-key</span><span class="desc">GPG signing key ID</span></li>
+                            <li><span class="opt">--custom-host</span><span class="desc">Custom hostname (required when
+                                    provider=custom)</span></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="advanced-panel reveal">
+                    <div class="advanced-panel-header">
+                        <div class="panel-icon">#</div>
+                        <h4>Workspace Auto-Switching</h4>
+                    </div>
+                    <div class="advanced-panel-body">
+                        <p style="font-size:.9rem;color:#444;line-height:1.7;margin-bottom:16px">
+                            Automatically switch profiles based on your working directory. Associate a profile with a
+                            directory and mgit handles the rest.
+                        </p>
+                        <div class="code-block">
+                            <div class="code-block-header">
+                                <span class="code-block-lang">bash</span>
+                                <button class="copy-btn" data-copy="mgit workspace work ~/work
+mgit workspace personal ~/personal">Copy</button>
+                            </div>
+                            <pre>mgit workspace work ~/work
+mgit workspace personal ~/personal</pre>
+                        </div>
+                        <div style="margin-top:24px;padding:16px;background:var(--yellow);border:var(--border)">
+                            <p style="font-size:.85rem;font-weight:700;margin:0;line-height:1.6">
+                                When you navigate into ~/work, mgit will automatically use your "work" profile. Navigate
+                                to ~/personal and it switches to "personal". No manual switching needed.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- TROUBLESHOOTING -->
+    <section class="troubleshoot-section" id="troubleshooting">
+        <div class="container">
+            <div class="section-header reveal">
+                <div class="section-tag">Troubleshooting</div>
+                <h2 class="section-title">Common issues<br>and fixes.</h2>
+                <p class="section-subtitle">Quick solutions to the most frequently encountered problems.</p>
+            </div>
+            <div class="accordion reveal">
+
+                <div class="accordion-item">
+                    <button class="accordion-trigger">
+                        <span>macOS "externally-managed-environment" error</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="accordion-body">
+                        <div class="accordion-body-inner">
+                            <p>This happens when macOS prevents pip from installing packages globally. Use the installer
+                                script or pipx instead.</p>
+                            <div class="code-block">
+                                <div class="code-block-header">
+                                    <span class="code-block-lang">bash</span>
+                                    <button class="copy-btn" data-copy="# Use the installer script (recommended)
+curl -fsSL https://raw.githubusercontent.com/PrajsRamteke/mgit/main/install.sh | bash
+
+# Or use pipx
+brew install pipx && pipx ensurepath
+pipx install git+https://github.com/PrajsRamteke/mgit.git">Copy</button>
+                                </div>
+                                <pre><span class="comment"># Use the installer script (recommended)</span>
+curl -fsSL https://raw.githubusercontent.com/PrajsRamteke/mgit/main/install.sh | bash
+
+<span class="comment"># Or use pipx</span>
+brew install pipx && pipx ensurepath
+pipx install git+https://github.com/PrajsRamteke/mgit.git</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <button class="accordion-trigger">
+                        <span>"mgit: command not found" after installation</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="accordion-body">
+                        <div class="accordion-body-inner">
+                            <p>Your PATH may not include the installation directory. Add it manually:</p>
+                            <div class="code-block">
+                                <div class="code-block-header">
+                                    <span class="code-block-lang">bash</span>
+                                    <button class="copy-btn" data-copy="echo 'export PATH=&quot;$HOME/.local/bin:$PATH&quot;' >> ~/.zshrc
+source ~/.zshrc">Copy</button>
+                                </div>
+                                <pre>echo <span class="string">'export PATH="$HOME/.local/bin:$PATH"'</span> >> ~/.zshrc
+source ~/.zshrc</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <button class="accordion-trigger">
+                        <span>SSH connection failed</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="accordion-body">
+                        <div class="accordion-body-inner">
+                            <p>If your SSH connection test fails, follow these steps in order:</p>
+                            <ul class="substeps">
+                                <li><span class="step-icon">1</span> Verify SSH key was added to GitHub/GitLab settings
+                                </li>
+                                <li><span class="step-icon">2</span> Check the key matches: <code
+                                        style="background:#eee;padding:2px 8px;border:1px solid #ddd;font-family:var(--font-mono);font-size:.82rem">mgit key &lt;name&gt;</code>
+                                </li>
+                                <li><span class="step-icon">3</span> Start SSH agent: <code
+                                        style="background:#eee;padding:2px 8px;border:1px solid #ddd;font-family:var(--font-mono);font-size:.82rem">eval "$(ssh-agent -s)"</code>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <button class="accordion-trigger">
+                        <span>Permission denied (publickey)</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="accordion-body">
+                        <div class="accordion-body-inner">
+                            <p>Ensure your SSH key is added to the agent. Test and add it manually:</p>
+                            <div class="code-block">
+                                <div class="code-block-header">
+                                    <span class="code-block-lang">bash</span>
+                                    <button class="copy-btn" data-copy="mgit test YourProfileName
+ssh-add ~/.ssh/id_ed25519_YourProfileName">Copy</button>
+                                </div>
+                                <pre>mgit test YourProfileName
+ssh-add ~/.ssh/id_ed25519_YourProfileName</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <button class="accordion-trigger">
+                        <span>Email not showing or auto-detection fails</span>
+                        <span class="icon">+</span>
+                    </button>
+                    <div class="accordion-body">
+                        <div class="accordion-body-inner">
+                            <p>If your email is not publicly visible on your Git provider, mgit will automatically use
+                                the provider's noreply email address (e.g., GitHub's noreply format). You can also
+                                manually specify an email during profile creation:</p>
+                            <div class="code-block">
+                                <div class="code-block-header">
+                                    <span class="code-block-lang">bash</span>
+                                    <button class="copy-btn"
+                                        data-copy="mgit add YourUsername -e your@email.com">Copy</button>
+                                </div>
+                                <pre>mgit add YourUsername <span class="flag">-e your@email.com</span></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <h3>mgit</h3>
+                <p>Multi-Git Manager. An open source CLI tool for managing multiple Git accounts on a single machine.
+                    Built with care for developers who work across organizations.</p>
+            </div>
+            <div class="footer-col">
+                <h5>Documentation</h5>
+                <a href="#installation">Installation</a>
+                <a href="#quickstart">Quick Start</a>
+                <a href="#commands">Commands</a>
+                <a href="#examples">Examples</a>
+                <a href="#advanced">Advanced</a>
+            </div>
+            <div class="footer-col">
+                <h5>Resources</h5>
+                <a href="#troubleshooting">Troubleshooting</a>
+                <a href="https://github.com/PrajsRamteke/mgit" target="_blank" rel="noopener">GitHub Repo</a>
+                <a href="https://github.com/PrajsRamteke/mgit/blob/main/CONTRIBUTING.md" target="_blank"
+                    rel="noopener">Contributing</a>
+                <a href="https://github.com/PrajsRamteke/mgit/issues" target="_blank" rel="noopener">Report Issues</a>
+            </div>
+            <div class="footer-col">
+                <h5>Legal</h5>
+                <a href="https://github.com/PrajsRamteke/mgit/blob/main/LICENSE" target="_blank" rel="noopener">MIT
+                    License</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>Built by PrajsRamteke</p>
+            <div class="links">
+                <a href="https://github.com/PrajsRamteke/mgit" target="_blank" rel="noopener">Source</a>
+                <a href="https://github.com/PrajsRamteke/mgit/blob/main/LICENSE" target="_blank"
+                    rel="noopener">License</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- BACK TO TOP -->
+    <button class="back-to-top" id="backToTop" aria-label="Back to top">&uarr;</button>
+
+    <script>
+        (function () {
+            // Mobile menu toggle
+            const toggle = document.getElementById('mobileToggle');
+            const menu = document.getElementById('mobileMenu');
+            toggle.addEventListener('click', () => {
+                toggle.classList.toggle('active');
+                menu.classList.toggle('open');
+            });
+            menu.querySelectorAll('a').forEach(a => {
+                a.addEventListener('click', () => {
+                    toggle.classList.remove('active');
+                    menu.classList.remove('open');
+                });
+            });
+
+            // Copy buttons
+            document.querySelectorAll('.copy-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const text = btn.getAttribute('data-copy') || btn.closest('.code-block').querySelector('pre').textContent;
+                    navigator.clipboard.writeText(text).then(() => {
+                        btn.textContent = 'Copied!';
+                        btn.classList.add('copied');
+                        setTimeout(() => {
+                            btn.textContent = 'Copy';
+                            btn.classList.remove('copied');
+                        }, 2000);
+                    });
+                });
+            });
+
+            // Table search
+            const searchInput = document.getElementById('tableSearch');
+            const tableBody = document.querySelector('#commandsTable tbody');
+            searchInput.addEventListener('input', () => {
+                const q = searchInput.value.toLowerCase();
+                tableBody.querySelectorAll('tr').forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(q) ? '' : 'none';
+                });
+            });
+
+            // Tabs
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const container = btn.closest('.tab-container');
+                    container.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    container.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+                    btn.classList.add('active');
+                    document.getElementById(btn.dataset.tab).classList.add('active');
+                });
+            });
+
+            // Accordion
+            document.querySelectorAll('.accordion-trigger').forEach(trigger => {
+                trigger.addEventListener('click', () => {
+                    const item = trigger.parentElement;
+                    const body = item.querySelector('.accordion-body');
+                    const isOpen = item.classList.contains('open');
+
+                    // Close all
+                    document.querySelectorAll('.accordion-item').forEach(i => {
+                        i.classList.remove('open');
+                        i.querySelector('.accordion-body').style.maxHeight = null;
+                    });
+
+                    if (!isOpen) {
+                        item.classList.add('open');
+                        body.style.maxHeight = body.scrollHeight + 'px';
+                    }
+                });
+            });
+
+            // Back to top
+            const btt = document.getElementById('backToTop');
+            window.addEventListener('scroll', () => {
+                btt.classList.toggle('visible', window.scrollY > 600);
+            });
+            btt.addEventListener('click', () => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+
+            // Scroll reveal
+            const reveals = document.querySelectorAll('.reveal');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+            reveals.forEach(el => observer.observe(el));
+
+            // Navbar shrink on scroll
+            const navbar = document.querySelector('.navbar');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 20) {
+                    navbar.style.boxShadow = '0 4px 0 var(--black)';
+                } else {
+                    navbar.style.boxShadow = 'none';
+                }
+            });
+
+            // Active nav link highlight
+            const sections = document.querySelectorAll('section[id]');
+            const navLinks = document.querySelectorAll('.nav-links a[href^="#"]');
+            window.addEventListener('scroll', () => {
+                let current = '';
+                sections.forEach(section => {
+                    const top = section.offsetTop - 100;
+                    if (window.scrollY >= top) {
+                        current = section.getAttribute('id');
+                    }
+                });
+                navLinks.forEach(link => {
+                    link.style.borderColor = 'transparent';
+                    link.style.background = 'transparent';
+                    if (link.getAttribute('href') === '#' + current) {
+                        link.style.borderColor = 'var(--black)';
+                        link.style.background = 'var(--yellow)';
+                    }
+                });
+            });
+
+            // Terminal typing effect
+            const termLines = document.querySelectorAll('#heroTerminal > div');
+            termLines.forEach((line, i) => {
+                line.style.opacity = '0';
+                line.style.transform = 'translateY(8px)';
+                line.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                setTimeout(() => {
+                    line.style.opacity = '1';
+                    line.style.transform = 'translateY(0)';
+                }, 300 + i * 150);
+            });
+        })();
+
+        // ===== THEME SWITCHER =====
+        const themeIcons = { 'light': '☀️', 'dark': '🌙', 'ocean': '🌊', 'forest': '🌲', 'sunset': '🌅' };
+
+        function toggleThemeDropdown() {
+            const switcher = document.getElementById('themeSwitcher');
+            switcher.classList.toggle('open');
+        }
+
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('mgit-theme', theme);
+            updateThemeUI(theme);
+            document.getElementById('themeSwitcher').classList.remove('open');
+        }
+
+        function updateThemeUI(theme) {
+            document.getElementById('currentThemeIcon').textContent = themeIcons[theme] || '🎨';
+            document.querySelectorAll('.theme-option').forEach(opt => {
+                opt.classList.remove('active');
+                if (opt.dataset.theme === theme) opt.classList.add('active');
+            });
+        }
+
+        document.addEventListener('click', (e) => {
+            const switcher = document.getElementById('themeSwitcher');
+            if (switcher && !switcher.contains(e.target)) switcher.classList.remove('open');
+        });
+
+        (function initTheme() {
+            const savedTheme = localStorage.getItem('mgit-theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeUI(savedTheme);
+        })();
+    </script>
+</body>
+
+</html>
